@@ -92,7 +92,10 @@ def verify_distribution(path, scope, legal_files, image=False, revision=None):
             require(base not in ("setup-uri", "deno", "denort", "verify-uri") and
                     not base.startswith(("denort-", "libdenort")),
                     f"Unexpected Deno/helper artifact: {name}")
-            if member.issym() or member.islnk():
+            # Docker injects this runtime metadata link even into scratch exports.
+            runtime_mtab = (image and name == "etc/mtab" and member.issym() and
+                            member.linkname == "/proc/mounts")
+            if (member.issym() or member.islnk()) and not runtime_mtab:
                 raise SystemExit(f"Unreviewed distribution symlink/hardlink: {name}")
             if member.isfile():
                 data = archive.extractfile(member).read()
