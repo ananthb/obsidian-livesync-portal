@@ -61,12 +61,14 @@ def verify_binary(data, scope, revision=None):
     return arch
 
 
-def entries(archive):
+def entries(archive, absolute_paths=()):
     result = {}
     for member in archive.getmembers():
         name = str(PurePosixPath(member.name))
-        require(not name.startswith("/") and ".." not in PurePosixPath(name).parts,
-                "Unsafe archive path")
+        require((not name.startswith("/") or name in absolute_paths) and
+                ".." not in PurePosixPath(name).parts, f"Unsafe archive path: {member.name!r}")
+        if name.startswith("/"):
+            name = name[1:]
         require(name not in result, f"Duplicate archive path: {name}")
         result[name] = member
     return result
@@ -85,7 +87,13 @@ def verify_distroless(path, scope, legal_files, revision, binary_hashes=None):
             "Distroless index evidence drift")
     index = json.loads((evidence / "index.json").read_text())
     with tarfile.open(path) as archive:
-        members = entries(archive)
+        # Ko's layer writer uses absolute names for these exact application assets.
+        absolute = {"/ko-app/obsidian-livesync-portal", "/var", "/var/run", "/var/run/ko"}
+        for name in legal_files:
+            asset = PurePosixPath("/var/run/ko") / name
+            absolute.add(str(asset))
+            absolute.update(str(p) for p in asset.parents if str(p) != "/")
+        members = entries(archive, absolute)
         binary = "ko-app/obsidian-livesync-portal"
         require(binary in members and members[binary].isfile(), "Missing ko application")
         binary_data = archive.extractfile(members[binary]).read()

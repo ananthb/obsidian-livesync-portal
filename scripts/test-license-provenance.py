@@ -71,6 +71,17 @@ class ImageMetadataTest(unittest.TestCase):
         with self.assertRaisesRegex(SystemExit, "Duplicate archive path"):
             self.verify("etc/mtab", "/proc/mounts", duplicate=True)
 
+    def test_only_explicit_ko_absolute_paths_are_normalized(self):
+        archive = unittest.mock.Mock()
+        archive.getmembers.return_value = [tarfile.TarInfo("/var/run/ko/LICENSE")]
+        result = provenance.entries(archive, {"/var/run/ko/LICENSE"})
+        self.assertEqual(list(result), ["var/run/ko/LICENSE"])
+        with self.assertRaisesRegex(SystemExit, "Unsafe archive path"):
+            provenance.entries(archive)
+        archive.getmembers.return_value.append(tarfile.TarInfo("var/run/ko/LICENSE"))
+        with self.assertRaisesRegex(SystemExit, "Duplicate archive path"):
+            provenance.entries(archive, {"/var/run/ko/LICENSE"})
+
     def test_console_is_not_image_payload(self):
         with self.assertRaisesRegex(SystemExit, "Unreviewed distribution"):
             self.verify("etc/mtab", "/proc/mounts", console=b"")
