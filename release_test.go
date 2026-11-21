@@ -37,7 +37,8 @@ func TestReleaseOrderingAndFailClosedWithMockedCLIs(t *testing.T) {
 				}
 				write("scripts/"+name, b, 0600)
 			}
-			write("Dockerfile.release", []byte("FROM scratch\n"), 0600)
+			write("licenses/distroless/inventory.json", []byte(`{"review_status":"approved","image":"base","index":"sha256:base"}`), 0600)
+			write("manifest-fixture", []byte(`{"manifests":[{"digest":"sha256:`+strings.Repeat("a", 64)+`","platform":{"os":"linux","architecture":"amd64"}},{"digest":"sha256:`+strings.Repeat("b", 64)+`","platform":{"os":"linux","architecture":"arm64"}}]}`), 0600)
 			var checksums strings.Builder
 			for _, arch := range []string{"amd64", "arm64"} {
 				name := "obsidian-livesync-portal_1.2.3_linux_" + arch + ".tar.gz"
@@ -67,7 +68,7 @@ func TestReleaseOrderingAndFailClosedWithMockedCLIs(t *testing.T) {
 			write("dist/obsidian-livesync-portal_1.2.3_source.tar.gz", source, 0600)
 			fmt.Fprintf(&checksums, "%x  obsidian-livesync-portal_1.2.3_source.tar.gz\n", sha256.Sum256(source))
 			write("dist/checksums.txt", []byte(checksums.String()), 0600)
-			for _, name := range []string{"gh", "docker", "cosign", "go", "python3", "curl"} {
+			for _, name := range []string{"gh", "docker", "cosign", "go", "python3", "curl", "goreleaser", "crane"} {
 				write("bin/"+name, []byte(releaseMockCLI), 0700)
 			}
 			if scenario == "retry-draft" {
@@ -102,7 +103,7 @@ func TestReleaseOrderingAndFailClosedWithMockedCLIs(t *testing.T) {
 			firstPush := -1
 			offset := 0
 			for _, line := range strings.Split(trace, "\n") {
-				if firstPush < 0 && strings.HasPrefix(line, "docker buildx build ") && strings.Contains(line, " --push ") {
+				if firstPush < 0 && strings.HasPrefix(line, "goreleaser release ") {
 					firstPush = offset
 				}
 				offset += len(line) + 1
@@ -128,7 +129,7 @@ func TestReleaseOrderingAndFailClosedWithMockedCLIs(t *testing.T) {
 				if armSmoke < 0 || sign < armSmoke || draft >= 0 && draft < sign {
 					t.Fatalf("unsafe release order\n%s", trace)
 				}
-				if strings.Count(trace, "docker buildx build ") != 2 {
+				if strings.Count(trace, "goreleaser release ") != 1 {
 					t.Fatalf("images rebuilt after testing\n%s", trace)
 				}
 				if strings.Contains(trace, "imagetools inspect") {
@@ -166,6 +167,22 @@ set -euo pipefail
 name=$(basename "$0")
 printf '%s %s\n' "$name" "$*" >> "$TEST_ROOT/trace"
 case "$name" in
+goreleaser)
+  mkdir -p build/ko-release
+  digest="sha256:$(sha256sum "$TEST_ROOT/manifest-fixture" | awk '{print $1}')"
+  [[ "$TEST_CASE" != metadata ]] || digest=invalid
+  printf '[{"type":"Docker Manifest","extra":{"ID":"portal","Digest":"%s"}}]\n' "$digest" > build/ko-release/artifacts.json
+  exit 0;;
+crane)
+  case "$1" in
+    manifest) cat "$TEST_ROOT/manifest-fixture";;
+    export) : > "$3";;
+    digest)
+      if [[ "$TEST_CASE" == promotion ]]; then printf 'sha256:wrong\n'; else printf 'sha256:%s\n' "$(sha256sum "$TEST_ROOT/manifest-fixture" | awk '{print $1}')"; fi;;
+    copy) :;;
+    *) exit 1;;
+  esac
+  exit 0;;
 python3)
   [[ "$TEST_CASE" != legal ]] || exit 1
   if [[ "$TEST_CASE" == source-legal && "$*" == *--release* && "$*" != *--images* ]]; then exit 1; fi
@@ -200,23 +217,9 @@ cosign)
   fi
   exit 0;;
 docker)
-  if [[ "$1" == create ]]; then printf '%064d\n' 0 | tr 0 c; exit 0; fi
-  if [[ "$1" == rm ]]; then exit 0; fi
-  if [[ "$1" == export ]]; then : > "$3"; exit 0; fi
+  if [[ "$1 $2" == 'image inspect' ]]; then printf '65532:65532\n'; exit 0; fi
+  if [[ "$1 $2" == 'volume create' ]]; then printf 'test-volume\n'; exit 0; fi
   if [[ "$1" == run && "$*" == *linux/arm64* && "$TEST_CASE" == smoke-arm64 ]]; then exit 1; fi
-  if [[ "$1 $2" == 'buildx build' || "$1 $2 $3" == 'buildx imagetools create' ]]; then
-    meta=''
-    for ((i=1;i<=$#;i++)); do if [[ "${!i}" == --metadata-file ]]; then j=$((i+1)); meta=${!j}; fi; done
-    char=c
-    [[ "$meta" != *image-amd64* ]] || char=a
-    [[ "$meta" != *image-arm64* ]] || char=b
-    if [[ "$meta" == *promoted* && "$TEST_CASE" == promotion ]]; then char=d; fi
-    hash=$(printf '%064d' 0 | tr 0 "$char")
-    if [[ "$meta" == *image-* ]]; then
-      if [[ "$TEST_CASE" == metadata ]]; then hash=invalid; fi
-      printf '{"containerimage.digest":"sha256:%s"}\n' "$hash" > "$meta"
-    else printf '{"containerimage.descriptor":{"digest":"sha256:%s"}}\n' "$hash" > "$meta"; fi
-  fi
   exit 0;;
 gh)
   if [[ "$1" == api ]]; then

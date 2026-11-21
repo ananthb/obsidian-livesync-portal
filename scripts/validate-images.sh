@@ -1,38 +1,33 @@
 #!/usr/bin/env bash
 # SPDX-License-Identifier: AGPL-3.0-only
-# Exercise the release Dockerfile and exact packaged binaries without registry writes.
 set -euo pipefail
 root=$(cd "$(dirname "$0")/.." && pwd)
 cd "$root"
-version=$(jq -er '.version' dist/metadata.json)
-revision=${GITHUB_SHA:-$(git rev-parse HEAD)}
-container=''
-trap 'if [[ -n "$container" ]]; then docker rm "$container"; fi' EXIT
+export IMAGE=ghcr.io/ananthb/obsidian-livesync-portal
+export RELEASE_OWNER=ananthb RELEASE_REPO=obsidian-livesync-portal
 mkdir -p build
 for arch in amd64 arm64; do
-  dir="build/validate-image-$arch"
-  mkdir "$dir"
-  tar -xzf "dist/obsidian-livesync-portal_${version}_linux_${arch}.tar.gz" -C "$dir"
-  cp Dockerfile.release "$dir/Dockerfile"
-  image="obsidian-livesync-portal:validate-$arch"
-  docker buildx build --platform "linux/$arch" --load -t "$image" "$dir"
+  export GOARCH="$arch" IMAGE_TAG="snapshot-$arch"
+  export PORTAL_DIST=dist
+  if [[ "$arch" == arm64 ]]; then PORTAL_DIST=dist-arm64; fi
+  goreleaser release --snapshot --clean --skip=publish,sign,sbom
+  image=$(docker image inspect --format '{{.Id}}' "goreleaser.ko.local/obsidian-livesync-portal:$IMAGE_TAG")
+  [[ "$image" =~ ^sha256:[a-f0-9]{64}$ ]]
   bash scripts/image-smoke.sh "$image" "linux/$arch"
-  container=$(docker create --platform "linux/$arch" "$image")
-  docker export --output "build/validate-image-$arch.tar" "$container"
-  python3 -c 'import sys, tarfile
-with tarfile.open(sys.argv[1]) as archive:
-    for member in archive:
-        if member.issym() or member.islnk() or member.name == "dev/console":
-            print(f"Export metadata evidence: {member.name!r} type={member.type!r} target={member.linkname!r} size={member.size} mode={member.mode:o}", flush=True)
-' "build/validate-image-$arch.tar"
-  docker rm "$container"
-  container=''
+  # Flatten the exact saved image, not a container's injected runtime filesystem.
+  docker save "$image" | crane export - "build/image-$arch.tar"
 done
-python3 scripts/license-provenance.py --release --images \
+unset GOARCH
+export PORTAL_DIST=dist
+bash scripts/artifact-smoke.sh
+bash scripts/check-static.sh dist/portal_linux_amd64_v1/livesync-portal dist/portal_linux_arm64_v8.0/livesync-portal
+bash scripts/package-source.sh
+version=$(jq -er '.version' dist/metadata.json)
+revision=${GITHUB_SHA:-$(git rev-parse HEAD)}
+python3 -B scripts/license-provenance.py --release --images --image-profile distroless \
   --archive "dist/obsidian-livesync-portal_${version}_linux_amd64.tar.gz" \
   --archive "dist/obsidian-livesync-portal_${version}_linux_arm64.tar.gz" \
   --source-archive "dist/obsidian-livesync-portal_${version}_source.tar.gz" \
   --revision "$revision" \
   --source-url "https://github.com/ananthb/obsidian-livesync-portal/releases/download/source-$revision/obsidian-livesync-portal_${version}_source.tar.gz" \
-  --image-tar build/validate-image-amd64.tar \
-  --image-tar build/validate-image-arm64.tar
+  --image-tar build/image-amd64.tar --image-tar build/image-arm64.tar

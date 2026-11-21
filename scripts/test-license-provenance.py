@@ -43,8 +43,9 @@ class ImageMetadataTest(unittest.TestCase):
             with patch.object(provenance, "verify_binary", return_value="amd64"):
                 return provenance.verify_distribution(path, {}, {}, image=image)
 
-    def test_exact_docker_mtab_is_allowed(self):
-        self.assertEqual(self.verify("etc/mtab", "/proc/mounts"), "amd64")
+    def test_runtime_mtab_is_not_image_payload(self):
+        with self.assertRaisesRegex(SystemExit, "Unreviewed distribution"):
+            self.verify("etc/mtab", "/proc/mounts")
 
     def test_other_links_are_rejected(self):
         for name, target, kind, image in [
@@ -70,14 +71,15 @@ class ImageMetadataTest(unittest.TestCase):
         with self.assertRaisesRegex(SystemExit, "Duplicate archive path"):
             self.verify("etc/mtab", "/proc/mounts", duplicate=True)
 
-    def test_empty_nonexecutable_console_is_allowed(self):
-        self.assertEqual(self.verify("etc/mtab", "/proc/mounts", console=b""), "amd64")
+    def test_console_is_not_image_payload(self):
+        with self.assertRaisesRegex(SystemExit, "Unreviewed distribution"):
+            self.verify("etc/mtab", "/proc/mounts", console=b"")
 
     def test_nonempty_or_executable_console_is_rejected(self):
         for content, mode, error in ((b"unreviewed", 0o600, "File differs"),
                                      (b"", 0o700, "Executable console")):
             with self.subTest(content=content, mode=mode):
-                with self.assertRaisesRegex(SystemExit, error):
+                with self.assertRaisesRegex(SystemExit, "Unreviewed distribution"):
                     self.verify("etc/mtab", "/proc/mounts", console=content, console_mode=mode)
 
 

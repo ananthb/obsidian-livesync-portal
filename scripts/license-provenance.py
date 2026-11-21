@@ -78,7 +78,59 @@ def same_file(archive, members, name, expected):
     require(archive.extractfile(member).read() == expected, f"File differs: {name}")
 
 
-def verify_distribution(path, scope, legal_files, image=False, revision=None):
+def verify_distroless(path, scope, legal_files, revision, binary_hashes=None):
+    inventory = json.loads((ROOT / "licenses/distroless/inventory.json").read_text())
+    evidence = ROOT / "licenses/distroless/evidence"
+    require("sha256:" + sha((evidence / "index.json").read_bytes()) == inventory["index"],
+            "Distroless index evidence drift")
+    index = json.loads((evidence / "index.json").read_text())
+    with tarfile.open(path) as archive:
+        members = entries(archive)
+        binary = "ko-app/obsidian-livesync-portal"
+        require(binary in members and members[binary].isfile(), "Missing ko application")
+        binary_data = archive.extractfile(members[binary]).read()
+        arch = verify_binary(binary_data, scope, revision)
+        if binary_hashes is not None:
+            require(sha(binary_data) == binary_hashes.get(arch), "Ko binary differs from release archive")
+        base = inventory["architectures"][arch]
+        require(base["descriptor"] in index["manifests"], "Distroless architecture evidence drift")
+        manifest_bytes = (evidence / f"{arch}-manifest.json").read_bytes()
+        require("sha256:" + sha(manifest_bytes) == base["descriptor"]["digest"], "Distroless manifest drift")
+        manifest = json.loads(manifest_bytes)
+        require("sha256:" + sha((evidence / f"{arch}-config.json").read_bytes()) == manifest["config"]["digest"],
+                "Distroless config drift")
+        for name, row in base["files"].items():
+            if name == "var/run":
+                # Ko replaces the base's var/run link with its kodata directory.
+                require(name in members and members[name].isdir(), "Expected ko data directory")
+                continue
+            member = members.get(name)
+            require(member is not None, f"Missing base path: {name}")
+            require(member.type.decode() == row["type"], f"Base path type differs: {name}")
+            if member.isfile():
+                require(sha(archive.extractfile(member).read()) == row["sha256"], f"Base file differs: {name}")
+            if member.issym() or member.islnk():
+                require(member.linkname == row["target"], f"Base link differs: {name}")
+            require(member.mode == row["mode"] and member.uid == row["uid"] and member.gid == row["gid"],
+                    f"Base permissions/ownership differ: {name}")
+        for name, data in legal_files.items():
+            same_file(archive, members, "var/run/ko/" + name, data)
+        approved = set(base["files"]) | {binary} | {"var/run/ko/" + n for n in legal_files}
+        for name, member in members.items():
+            require(member.isdir() or name in approved, f"Unreviewed ko image path: {name}")
+            if name not in base["files"]:
+                require(member.isdir() or member.isfile(), f"Unreviewed ko image link/device: {name}")
+                if member.isfile() and name != binary:
+                    data = archive.extractfile(member).read()
+                    require(not data.startswith((b"\x7fELF", b"MZ", b"#!", b"\xcf\xfa\xed\xfe")),
+                            f"Unexpected executable in ko data: {name}")
+    print(f"Verified {path}: static Linux {arch}, exact pinned distroless payload and recursive ko legal data.")
+    return arch
+
+
+def verify_distribution(path, scope, legal_files, image=False, revision=None, image_profile="scratch", binary_hashes=None):
+    if image and image_profile == "distroless":
+        return verify_distroless(path, scope, legal_files, revision, binary_hashes)
     with tarfile.open(path) as archive:
         members = entries(archive)
         prefix = "app/" if image else ""
@@ -92,10 +144,7 @@ def verify_distribution(path, scope, legal_files, image=False, revision=None):
             require(base not in ("setup-uri", "deno", "denort", "verify-uri") and
                     not base.startswith(("denort-", "libdenort")),
                     f"Unexpected Deno/helper artifact: {name}")
-            # Docker injects this runtime metadata link even into scratch exports.
-            runtime_mtab = (image and name == "etc/mtab" and member.issym() and
-                            member.linkname == "/proc/mounts")
-            if (member.issym() or member.islnk()) and not runtime_mtab:
+            if member.issym() or member.islnk():
                 raise SystemExit(f"Unreviewed distribution symlink/hardlink: {name}")
             if member.isfile():
                 data = archive.extractfile(member).read()
@@ -114,12 +163,6 @@ def verify_distribution(path, scope, legal_files, image=False, revision=None):
             # Docker may add these runtime metadata files to a container export;
             # they are not licenses/OS payload and must never be executables.
             approved |= {".dockerenv", "etc/hosts", "etc/hostname", "etc/resolv.conf"}
-            # Docker exports its empty console mount point, not a runtime device.
-            if "dev/console" in members:
-                same_file(archive, members, "dev/console", b"")
-                require(not members["dev/console"].mode & 0o111,
-                        "Executable console metadata")
-                approved.add("dev/console")
             unexpected = [n for n, m in members.items() if m.isfile() and n not in approved]
             require(not unexpected,
                     f"Image contains unreviewed files outside scratch payload: {unexpected!r}")
@@ -159,24 +202,15 @@ def verify_source(path, revision):
                 subprocess.check_call(["go", "mod", "vendor", "-o", str(vendor)], cwd=ROOT)
                 vendor_files = {"vendor/" + p.relative_to(vendor).as_posix(): p.read_bytes()
                                 for p in vendor.rglob("*") if p.is_file()}
-            ca_dir = ROOT / "licenses/ca-bundle"
-            required = set(vendor_files) | {
-                "build-inputs/manifest.json",
-                "build-inputs/etc/ssl/certs/ca-certificates.crt",
-                "build-inputs/usr/share/doc/ca-certificates/copyright"
-            }
+            required = set(vendor_files) | {"build-inputs/manifest.json"}
             require(additions == required, "Source vendor/build-input file set is incomplete or unexpected")
             for name, data in vendor_files.items():
                 same_file(archive, actual, prefix + name, data)
-            same_file(archive, actual, prefix + "build-inputs/etc/ssl/certs/ca-certificates.crt",
-                      (ca_dir / "certificates.pem").read_bytes())
-            same_file(archive, actual, prefix + "build-inputs/usr/share/doc/ca-certificates/copyright",
-                      (ca_dir / "debian-copyright").read_bytes())
             inputs = json.load(archive.extractfile(actual[prefix + "build-inputs/manifest.json"]))
-            ca = json.loads((ca_dir / "provenance.json").read_text())
+            base = json.loads((ROOT / "licenses/distroless/inventory.json").read_text())
             require(inputs["source_commit"] == revision and inputs["go"] == "1.27.4" and
-                    inputs["ca_bundle_sha256"] == ca["bundle_sha256"] and
-                    inputs["builder_image"] == "golang:1.27.4-bookworm@" + ca["builder_index"],
+                    inputs["base_image"] == base["image"] + "@" + base["index"] and
+                    inputs["goreleaser"] == "2.20.3" and inputs["ko"] == "0.19.1",
                     "Source build-input manifest does not match reviewed inputs")
     print(f"Verified exact Corresponding Source archive for {revision} (all tracked files/build/legal assets).")
 
@@ -187,6 +221,7 @@ def main():
     parser.add_argument("--images", action="store_true", help="Require both flattened image exports for release")
     parser.add_argument("--archive", action="append", type=Path, default=[])
     parser.add_argument("--image-tar", action="append", type=Path, default=[])
+    parser.add_argument("--image-profile", choices=("scratch", "distroless"), default="scratch")
     parser.add_argument("--source-archive", type=Path)
     parser.add_argument("--revision", help="Exact 40-character release source commit")
     parser.add_argument("--source-url", help="Public version-specific source URL offered with release/deployment")
@@ -212,7 +247,14 @@ def main():
     if args.revision:
         require(re.fullmatch(r"[0-9a-f]{40}", args.revision), "Expected exact source commit")
     arches = {verify_distribution(p, scope, legal, revision=args.revision) for p in args.archive}
-    images = {verify_distribution(p, scope, legal, image=True, revision=args.revision) for p in args.image_tar}
+    binary_hashes = {}
+    for path in args.archive:
+        with tarfile.open(path) as archive:
+            data = archive.extractfile("livesync-portal").read()
+            arch = verify_binary(data, scope, args.revision)
+            binary_hashes[arch] = sha(data)
+    images = {verify_distribution(p, scope, legal, image=True, revision=args.revision,
+                                 image_profile=args.image_profile, binary_hashes=binary_hashes) for p in args.image_tar}
     if args.source_archive:
         require(args.revision, "Source verification requires --revision")
         verify_source(args.source_archive, args.revision)

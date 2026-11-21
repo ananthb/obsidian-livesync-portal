@@ -269,9 +269,9 @@ audit. This restriction does not apply to the reviewed native-Go-only profile.
   `setup/upstream/LICENSE`, outside the archive/image inclusion globs. It is now
   duplicated verbatim as `licenses/setup-helper.txt`, which those globs include.
 * `.goreleaser.yaml` includes `LICENSE`, `THIRD_PARTY_NOTICES.md`, and
-  `licenses/**`; both Dockerfiles copy the complete `licenses/` tree. Keep that
+  `licenses/**`; ko data includes the complete `licenses/` tree. Keep that
   recursive structure, including evidence and nested crate notices. No app,
-  Dockerfile or workflow was changed by this license review.
+  image recipe or workflow was changed by this license review.
 * Existing `dist/` archives and previously built images predate these additions.
   Rebuild, inspect both architecture archives and final images, and compare all
   legal-file hashes against `licenses/provenance.json`. Checking the source

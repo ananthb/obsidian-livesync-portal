@@ -5,7 +5,7 @@ root=$(cd "$(dirname "$0")/.." && pwd)
 cd "$root"
 source scripts/release-common.sh
 guard_release
-verify_release_artifacts --images --image-tar build/image-amd64.tar --image-tar build/image-arm64.tar
+verify_release_artifacts --images --image-profile distroless --image-tar build/image-amd64.tar --image-tar build/image-arm64.tar
 identity="https://github.com/$GITHUB_REPOSITORY/.github/workflows/release.yml@refs/tags/$tag"
 issuer=https://token.actions.githubusercontent.com
 digest=$(metadata_digest build/manifest.json)
@@ -20,6 +20,7 @@ verify_assets() {
 for file in build/image-amd64.json build/image-arm64.json build/manifest.json; do
   ref=$(metadata_digest "$file")
   cosign verify --certificate-identity "$identity" --certificate-oidc-issuer "$issuer" "$image@$ref"
+  cosign verify-attestation --type https://slsa.dev/provenance/v1 --certificate-identity "$identity" --certificate-oidc-issuer "$issuer" "$image@$ref"
 done
 bash scripts/publish-source.sh
 
@@ -47,9 +48,8 @@ trap 'rm -f "$download"/*; rmdir "$download"' EXIT
 gh release download "$tag" --repo "$GITHUB_REPOSITORY" --dir "$download"
 (cd "$download" && verify_assets)
 guard_release
-docker buildx imagetools create --prefer-index=false --metadata-file build/promoted.json \
-  -t "$image:$tag" "$image@$digest"
-[[ "$(metadata_digest build/promoted.json)" == "$digest" ]]
+crane copy "$image@$digest" "$image:$tag"
+[[ "$(crane digest "$image:$tag")" == "$digest" ]]
 guard_release
 verify_public_source
 gh api --method PATCH "repos/$GITHUB_REPOSITORY/releases/$id" -F draft=false

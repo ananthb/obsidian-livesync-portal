@@ -18,7 +18,11 @@ import (
 )
 
 func TestInstalledImage(t *testing.T) {
-	if _, err := os.Stat("/app/livesync-portal"); err != nil {
+	const binary = "/ko-app/obsidian-livesync-portal"
+	if _, err := os.Stat(binary); err != nil {
+		if os.Getenv("PORTAL_IMAGE_TEST") == "1" {
+			t.Fatal("ko application missing", err)
+		}
 		t.Skip("run scripts/image-smoke.sh")
 	}
 	if os.Getuid() != 65532 || os.Getgid() != 65532 {
@@ -28,7 +32,7 @@ func TestInstalledImage(t *testing.T) {
 	defer cancel()
 	c := sampleConfig().People["alice"].Credentials
 	input, _ := json.Marshal(c)
-	cmd := exec.CommandContext(ctx, "/app/livesync-portal", "setup-uri")
+	cmd := exec.CommandContext(ctx, binary, "setup-uri")
 	cmd.Stdin = bytes.NewReader(input)
 	out, err := cmd.Output()
 	if err != nil {
@@ -41,7 +45,7 @@ func TestInstalledImage(t *testing.T) {
 	if _, err := DecryptPersistentSetup(result.URI, result.Password); err != nil {
 		t.Fatal("image URI decryption", err)
 	}
-	if _, err := os.Stat("/app/setup-uri"); !os.IsNotExist(err) {
+	if _, err := os.Stat("/ko-app/setup-uri"); !os.IsNotExist(err) {
 		t.Fatal("obsolete runtime helper present")
 	}
 	if _, err := os.Stat("/etc/ssl/certs/ca-certificates.crt"); err != nil {
@@ -57,22 +61,36 @@ func TestInstalledImage(t *testing.T) {
 	if _, err := os.Stat("/etc/resolv.conf"); err != nil {
 		t.Fatal("container DNS configuration missing", err)
 	}
-	if _, err := os.Stat("/app/licenses/ca-bundle/debian-copyright"); err != nil {
+	if _, err := os.Stat("/usr/share/doc/ca-certificates/copyright"); err != nil {
 		t.Fatal("CA bundle package notice missing", err)
 	}
-	data, err := os.CreateTemp("/data", "smoke-*")
+	if _, err := os.Stat(filepath.Join(os.Getenv("KO_DATA_PATH"), "LICENSE")); err != nil {
+		t.Fatal("ko legal data missing", err)
+	}
+	dataDir := os.Getenv("PORTAL_TEST_DATA")
+	if dataDir == "" {
+		dataDir = "/home/nonroot"
+	}
+	data, err := os.CreateTemp(dataDir, "smoke-*")
 	if err != nil {
 		t.Fatal("SQLite data volume not writable", err)
 	}
 	data.Close()
 	defer os.Remove(data.Name())
-	path := filepath.Join(t.TempDir(), "catalog.db")
+	path := filepath.Join(dataDir, "catalog.db")
 	r, err := openSQLite(path, sampleConfig().People)
 	if err != nil {
 		t.Fatal("image SQLite", err)
 	}
 	defer r.Close()
-	testInstalledStartup(t, "/app/livesync-portal")
+	sentinel := filepath.Join(dataDir, "persisted")
+	if b, err := os.ReadFile(sentinel); err == nil && string(b) != "persistent volume" {
+		t.Fatal("persistent data changed")
+	}
+	if err := os.WriteFile(sentinel, []byte("persistent volume"), 0600); err != nil {
+		t.Fatal(err)
+	}
+	testInstalledStartup(t, binary)
 }
 
 func testInstalledStartup(t *testing.T, binary string) {

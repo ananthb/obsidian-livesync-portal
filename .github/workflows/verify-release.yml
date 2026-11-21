@@ -47,3 +47,4 @@ jobs:
           image="ghcr.io/${GITHUB_REPOSITORY,,}"
           [[ "$(cat image-digest.txt)" == "$image@$EXPECTED_DIGEST" ]]
           cosign verify --certificate-identity "$identity" --certificate-oidc-issuer "$issuer" "$image@$EXPECTED_DIGEST"
+          cosign verify-attestation --type https://slsa.dev/provenance/v1 --certificate-identity "$identity" --certificate-oidc-issuer "$issuer" "$image@$EXPECTED_DIGEST"
