@@ -108,9 +108,11 @@ def verify_distroless(path, scope, legal_files, revision, binary_hashes=None):
         require("sha256:" + sha((evidence / f"{arch}-config.json").read_bytes()) == manifest["config"]["digest"],
                 "Distroless config drift")
         for name, row in base["files"].items():
-            if name == "var/run":
-                # Ko replaces the base's var/run link with its kodata directory.
-                require(name in members and members[name].isdir(), "Expected ko data directory")
+            if name in ("var", "var/run"):
+                # Ko writes these two data-parent directory headers explicitly.
+                require(name in members and members[name].isdir() and
+                        members[name].mode == 0o555 and members[name].uid == 0 and members[name].gid == 0,
+                        f"Expected root-owned ko data directory: {name}")
                 continue
             member = members.get(name)
             require(member is not None, f"Missing base path: {name}")

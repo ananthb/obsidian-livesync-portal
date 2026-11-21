@@ -8,8 +8,8 @@ Base: `gcr.io/distroless/static-debian13@sha256:aafe993665bf6200db38a02c11a9351e
 The immutable index and amd64/arm64 manifests/configs are in `evidence/`.
 `inventory.json` records every flattened base path, type, permissions, owner,
 file hash and link target. The final-image gate requires these exact contents;
-it does not permit arbitrary OS files or symlinks. Ko replaces `/var/run` with
-its data directory; the audit checks this exception explicitly.
+it does not permit arbitrary OS files or symlinks. Ko writes root-owned mode-0555
+headers for `/var` and `/var/run`; the audit checks these exceptions explicitly.
 
 `base-notices/` retains the base's complete package status, documentation and
 common-license files. The original image retains those files at their standard
