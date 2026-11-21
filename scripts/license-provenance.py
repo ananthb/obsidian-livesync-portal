@@ -114,8 +114,9 @@ def verify_distribution(path, scope, legal_files, image=False, revision=None):
             # Docker may add these runtime metadata files to a container export;
             # they are not licenses/OS payload and must never be executables.
             approved |= {".dockerenv", "etc/hosts", "etc/hostname", "etc/resolv.conf"}
-            require(all(not m.isfile() or n in approved for n, m in members.items()),
-                    "Image contains unreviewed files outside scratch payload")
+            unexpected = [n for n, m in members.items() if m.isfile() and n not in approved]
+            require(not unexpected,
+                    f"Image contains unreviewed files outside scratch payload: {unexpected!r}")
         else:
             approved = set(legal_files) | {binary_name, "README.md"}
             approved |= {p.relative_to(ROOT).as_posix() for p in (ROOT / "examples").rglob("*") if p.is_file()}
