@@ -14,13 +14,17 @@ grep -Fq "  $source_archive" dist/checksums.txt
 verify_release_artifacts
 cosign sign-blob --yes --bundle "dist/$source_archive.sigstore.json" "dist/$source_archive"
 bash scripts/publish-source.sh
-export PORTAL_DIST=build/ko-release IMAGE="$image"
+export IMAGE="$image"
 export IMAGE_TAG="candidate-$GITHUB_SHA-$GITHUB_RUN_ID-$GITHUB_RUN_ATTEMPT"
 export RELEASE_OWNER=${GITHUB_REPOSITORY_OWNER:-${GITHUB_REPOSITORY%/*}}
 export RELEASE_REPO=${GITHUB_REPOSITORY#*/}
 unset GOARCH GOOS
 # Only this invocation builds/pushes images; the source is already public and verified.
+mkdir -p build
+mv dist build/release-artifacts
 goreleaser release --clean --skip=archive,sbom,sign
+mv dist build/ko-release
+mv build/release-artifacts dist
 digest=$(jq -er '[.[] | select(.type == "Docker Manifest" and .extra.ID == "portal")] | if length == 1 then .[0].extra.Digest else error("Expected one ko index") end' build/ko-release/artifacts.json)
 [[ "$digest" =~ ^sha256:[a-f0-9]{64}$ ]]
 crane manifest "$image@$digest" > build/manifest-index.json

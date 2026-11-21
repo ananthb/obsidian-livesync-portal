@@ -8,8 +8,6 @@ export RELEASE_OWNER=ananthb RELEASE_REPO=obsidian-livesync-portal
 mkdir -p build
 for arch in amd64 arm64; do
   export GOARCH="$arch" IMAGE_TAG="snapshot-$arch"
-  export PORTAL_DIST=dist
-  if [[ "$arch" == arm64 ]]; then PORTAL_DIST=dist-arm64; fi
   goreleaser release --snapshot --clean --skip=publish,sign,sbom
   image=$(docker image inspect --format '{{.Id}}' "goreleaser.ko.local/obsidian-livesync-portal:$IMAGE_TAG")
   [[ "$image" =~ ^sha256:[a-f0-9]{64}$ ]]
@@ -18,7 +16,6 @@ for arch in amd64 arm64; do
   docker save "$image" | crane export - "build/image-$arch.tar"
 done
 unset GOARCH
-export PORTAL_DIST=dist
 bash scripts/artifact-smoke.sh
 bash scripts/check-static.sh dist/portal_linux_amd64_v1/livesync-portal dist/portal_linux_arm64_v8.0/livesync-portal
 bash scripts/package-source.sh

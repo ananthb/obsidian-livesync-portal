@@ -168,10 +168,10 @@ name=$(basename "$0")
 printf '%s %s\n' "$name" "$*" >> "$TEST_ROOT/trace"
 case "$name" in
 goreleaser)
-  mkdir -p build/ko-release
+  mkdir -p dist
   digest="sha256:$(sha256sum "$TEST_ROOT/manifest-fixture" | awk '{print $1}')"
   [[ "$TEST_CASE" != metadata ]] || digest=invalid
-  printf '[{"type":"Docker Manifest","extra":{"ID":"portal","Digest":"%s"}}]\n' "$digest" > build/ko-release/artifacts.json
+  printf '[{"type":"Docker Manifest","extra":{"ID":"portal","Digest":"%s"}}]\n' "$digest" > dist/artifacts.json
   exit 0;;
 crane)
   case "$1" in
