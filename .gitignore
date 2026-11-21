@@ -7,5 +7,7 @@
 /build/
 /secrets/
 /.env
+/.direnv/
+/.pre-commit-config.yaml
 /livesync-portal
 /setup-uri
