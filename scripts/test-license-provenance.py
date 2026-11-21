@@ -15,7 +15,8 @@ spec.loader.exec_module(provenance)
 
 
 class ImageMetadataTest(unittest.TestCase):
-    def verify(self, name, target, kind=tarfile.SYMTYPE, image=True, duplicate=False):
+    def verify(self, name, target, kind=tarfile.SYMTYPE, image=True, duplicate=False,
+               console=None, console_mode=0o600):
         with tempfile.TemporaryDirectory() as directory:
             path = Path(directory) / "image.tar"
             with tarfile.open(path, "w") as archive:
@@ -34,6 +35,11 @@ class ImageMetadataTest(unittest.TestCase):
                 archive.addfile(member)
                 if duplicate:
                     archive.addfile(member)
+                if console is not None:
+                    member = tarfile.TarInfo("dev/console")
+                    member.size = len(console)
+                    member.mode = console_mode
+                    archive.addfile(member, io.BytesIO(console))
             with patch.object(provenance, "verify_binary", return_value="amd64"):
                 return provenance.verify_distribution(path, {}, {}, image=image)
 
@@ -46,6 +52,7 @@ class ImageMetadataTest(unittest.TestCase):
             ("etc/mtab", "/proc/../proc/mounts", tarfile.SYMTYPE, True),
             ("etc/mtab", "../../proc/mounts", tarfile.SYMTYPE, True),
             ("etc/other", "/proc/mounts", tarfile.SYMTYPE, True),
+            ("dev/console", "/proc/mounts", tarfile.SYMTYPE, True),
             ("etc/mtab", "/proc/mounts", tarfile.LNKTYPE, True),
             ("etc/mtab", "/proc/mounts", tarfile.SYMTYPE, False),
         ]:
@@ -62,6 +69,16 @@ class ImageMetadataTest(unittest.TestCase):
     def test_duplicate_metadata_is_rejected(self):
         with self.assertRaisesRegex(SystemExit, "Duplicate archive path"):
             self.verify("etc/mtab", "/proc/mounts", duplicate=True)
+
+    def test_empty_nonexecutable_console_is_allowed(self):
+        self.assertEqual(self.verify("etc/mtab", "/proc/mounts", console=b""), "amd64")
+
+    def test_nonempty_or_executable_console_is_rejected(self):
+        for content, mode, error in ((b"unreviewed", 0o600, "File differs"),
+                                     (b"", 0o700, "Executable console")):
+            with self.subTest(content=content, mode=mode):
+                with self.assertRaisesRegex(SystemExit, error):
+                    self.verify("etc/mtab", "/proc/mounts", console=content, console_mode=mode)
 
 
 if __name__ == "__main__":

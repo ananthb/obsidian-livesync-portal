@@ -22,8 +22,8 @@ for arch in amd64 arm64; do
   python3 -c 'import sys, tarfile
 with tarfile.open(sys.argv[1]) as archive:
     for member in archive:
-        if member.issym() or member.islnk():
-            print(f"Export link evidence: {member.name!r} type={member.type!r} target={member.linkname!r}", flush=True)
+        if member.issym() or member.islnk() or member.name == "dev/console":
+            print(f"Export metadata evidence: {member.name!r} type={member.type!r} target={member.linkname!r} size={member.size} mode={member.mode:o}", flush=True)
 ' "build/validate-image-$arch.tar"
   docker rm "$container"
   container=''

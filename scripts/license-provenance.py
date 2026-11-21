@@ -114,6 +114,12 @@ def verify_distribution(path, scope, legal_files, image=False, revision=None):
             # Docker may add these runtime metadata files to a container export;
             # they are not licenses/OS payload and must never be executables.
             approved |= {".dockerenv", "etc/hosts", "etc/hostname", "etc/resolv.conf"}
+            # Docker exports its empty console mount point, not a runtime device.
+            if "dev/console" in members:
+                same_file(archive, members, "dev/console", b"")
+                require(not members["dev/console"].mode & 0o111,
+                        "Executable console metadata")
+                approved.add("dev/console")
             unexpected = [n for n, m in members.items() if m.isfile() and n not in approved]
             require(not unexpected,
                     f"Image contains unreviewed files outside scratch payload: {unexpected!r}")
