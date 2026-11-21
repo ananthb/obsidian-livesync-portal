@@ -1,0 +1,2 @@
+/* SPDX-License-Identifier: AGPL-3.0-only */
+:root{font:18px system-ui;color-scheme:light dark}body{max-width:58rem;margin:2rem auto;padding:0 1rem}header{display:flex;justify-content:space-between;align-items:center}section{border:1px solid #888;border-radius:.4rem;padding:1rem;margin:1rem 0}label{display:block;margin:.8rem 0}input,textarea{display:block;box-sizing:border-box;width:100%;padding:.5rem;font:inherit}button{padding:.5rem 1rem;cursor:pointer}nav a{display:inline-block;margin:.5rem}code{overflow-wrap:anywhere}[role=alert]{border:2px solid #b55;padding:1rem}

@@ -1,0 +1,12 @@
+{
+  "profile": "scratch-ca-data-only",
+  "builder_index": "sha256:4fa7c968ba93f1635670522dbb01a2c78150443e1385746924566079f36570ea",
+  "builder_amd64_manifest": "sha256:fb7cceb528b47141eccd9b60bf3cbd27d5ef5f8cf5b7d338bec866da495b50dc",
+  "package": "ca-certificates",
+  "version": "20250419~deb12u2",
+  "bundle_sha256": "e9c7b63ee2623386e9b0a3ee32f499d01a8ea23dc83b8383ddff9f8e749543b7",
+  "license": "MPL-2.0 for Mozilla certificate data; GPL-2+ Debian conversion/build utilities retained only inside complete source archive, not installed/linked",
+  "source_distribution": "Full exact Debian source package retained at licenses/ca-bundle/upstream-source.tar.xz, including original Mozilla certdata.txt, conversion script, copyright and build rules. Source SHA-256 matches upstream-source.dsc; the PGP signature was not independently verified.",
+  "build_platform": "linux/amd64 baseline; other builder architectures require exact bundle hash equality or separate review",
+  "certificate_count": 148
+}

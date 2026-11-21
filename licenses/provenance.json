@@ -1,0 +1,649 @@
+{
+  "audit_date": "2026-11-21",
+  "status": "SCOPED_REVIEWED_NOT_PUBLICATION_APPROVAL",
+  "assets": [
+    {
+      "path": "licenses/ca-bundle/GPL-2.0.txt",
+      "sha256": "8177f97513213526df2cf6184d8ff986c675afb514d4e68a404010521b880643",
+      "source": "docker.io/library/golang@sha256:4fa7c968ba93f1635670522dbb01a2c78150443e1385746924566079f36570ea",
+      "member": "usr/share/common-licenses/GPL-2",
+      "layer": "sha256:69245854ad5855991d16224f6abf55855d2d73922785206adea9c5c5988434a0",
+      "distribution_scope": "Mozilla CA data in scratch image and complete corresponding data/source notices"
+    },
+    {
+      "path": "licenses/ca-bundle/MPL-2.0.txt",
+      "sha256": "fab3dd6bdab226f1c08630b1dd917e11fcb4ec5e1e020e2c16f83a0a13863e85",
+      "source": "docker.io/library/golang@sha256:4fa7c968ba93f1635670522dbb01a2c78150443e1385746924566079f36570ea",
+      "member": "usr/share/common-licenses/MPL-2.0",
+      "layer": "sha256:69245854ad5855991d16224f6abf55855d2d73922785206adea9c5c5988434a0",
+      "distribution_scope": "Mozilla CA data in scratch image and complete corresponding data/source notices"
+    },
+    {
+      "path": "licenses/ca-bundle/certificates.pem",
+      "sha256": "e9c7b63ee2623386e9b0a3ee32f499d01a8ea23dc83b8383ddff9f8e749543b7",
+      "source": "docker.io/library/golang@sha256:4fa7c968ba93f1635670522dbb01a2c78150443e1385746924566079f36570ea",
+      "member": "etc/ssl/certs/ca-certificates.crt",
+      "layer": "sha256:338554e9113fa6731ba588cb8f45e85b3e3fe7ada531ee7d7b0bc9291d616727",
+      "distribution_scope": "Mozilla CA data in scratch image and complete corresponding data/source notices"
+    },
+    {
+      "path": "licenses/ca-bundle/debian-copyright",
+      "sha256": "e85e1bcad3a915dc7e6f41412bc5bdeba275cadd817896ea0451f2140a93967c",
+      "source": "docker.io/library/golang@sha256:4fa7c968ba93f1635670522dbb01a2c78150443e1385746924566079f36570ea",
+      "member": "usr/share/doc/ca-certificates/copyright",
+      "layer": "sha256:338554e9113fa6731ba588cb8f45e85b3e3fe7ada531ee7d7b0bc9291d616727",
+      "distribution_scope": "Mozilla CA data in scratch image and complete corresponding data/source notices"
+    },
+    {
+      "path": "licenses/ca-bundle/provenance.json",
+      "sha256": "c24fd5849ece753b2e1d8bc8fe7ebf9757004e813c941d13514bc24c0175db4e",
+      "source": "Digest-verified pinned builder layers and installed package status",
+      "distribution_scope": "Mozilla CA data in scratch image and complete corresponding data/source notices"
+    },
+    {
+      "path": "licenses/ca-bundle/source-certificates.tar.gz",
+      "sha256": "e30a8e35ff2df8012055a66ddf5bb46454a7d2683d16c73f668dfe26afcc28e3",
+      "source": "Exact Mozilla PEM source certificates in the pinned Go builder image /usr/share/ca-certificates/mozilla; retained without modifications",
+      "distribution_scope": "Mozilla CA data in scratch image and complete corresponding data/source notices"
+    },
+    {
+      "path": "licenses/ca-bundle/upstream-source.dsc",
+      "sha256": "a041820e6feb1effe0598f80e02fb62a40ef312678b85cfbb57d2864d0b5c0b7",
+      "source": "https://deb.debian.org/debian-security/pool/updates/main/c/ca-certificates/ca-certificates_20250419~deb12u2.dsc",
+      "distribution_scope": "Mozilla CA data in scratch image and complete corresponding data/source notices"
+    },
+    {
+      "path": "licenses/ca-bundle/upstream-source.tar.xz",
+      "sha256": "934942a985b2efd7a8c122cb1d42cd87911cf6ac365c545938619fcf268ea8f4",
+      "source": "https://deb.debian.org/debian-security/pool/updates/main/c/ca-certificates/ca-certificates_20250419~deb12u2.tar.xz",
+      "distribution_scope": "Mozilla CA data in scratch image and complete corresponding data/source notices"
+    },
+    {
+      "path": "licenses/deno-runtime/Cargo.lock",
+      "sha256": "36aab78913808a9fb2e5a3a3a27a74a1a1045011133f28beaac6eabf57fc9895",
+      "source": "https://github.com/denoland/deno/releases/download/v2.9.8/deno_src.tar.gz",
+      "member": "deno/Cargo.lock",
+      "archive_sha256": "b57d0281c1647effc735f242ba52bc409747fc6ed6ad4946e76f062c67e113eb",
+      "distribution_scope": "TEST/SOURCE/HISTORICAL notices only; NOT native Deno binary redistribution clearance"
+    },
+    {
+      "path": "licenses/deno-runtime/Cargo.toml",
+      "sha256": "71b1e43ad42b8816daab3da366f7852310277cf28f8e873e55f14830263961a0",
+      "source": "https://github.com/denoland/deno/releases/download/v2.9.8/deno_src.tar.gz",
+      "member": "deno/Cargo.toml",
+      "archive_sha256": "b57d0281c1647effc735f242ba52bc409747fc6ed6ad4946e76f062c67e113eb",
+      "distribution_scope": "TEST/SOURCE/HISTORICAL notices only; NOT native Deno binary redistribution clearance"
+    },
+    {
+      "path": "licenses/deno-runtime/LICENSE.md",
+      "sha256": "f62497fffecc0852960c8d3e6934b9db86d16396e9b604072e923892cae3a588",
+      "source": "https://github.com/denoland/deno/releases/download/v2.9.8/deno_src.tar.gz",
+      "member": "deno/LICENSE.md",
+      "archive_sha256": "b57d0281c1647effc735f242ba52bc409747fc6ed6ad4946e76f062c67e113eb",
+      "distribution_scope": "TEST/SOURCE/HISTORICAL notices only; NOT native Deno binary redistribution clearance"
+    },
+    {
+      "path": "licenses/deno-runtime/crates/aws-lc-sys-0.40.0/LICENSE",
+      "sha256": "728536b4160e051f86d7c9c388f704866b3d512cd7df97ac3516c65279523c4e",
+      "source": "https://static.crates.io/crates/aws-lc-sys/aws-lc-sys-0.40.0.crate",
+      "member": "aws-lc-sys-0.40.0/LICENSE",
+      "archive_sha256": "f50037ee5e1e41e7b8f9d161680a725bd1626cb6f8c7e901f91f942850852fe7",
+      "distribution_scope": "TEST/SOURCE/HISTORICAL notices only; NOT native Deno binary redistribution clearance"
+    },
+    {
+      "path": "licenses/deno-runtime/crates/aws-lc-sys-0.40.0/aws-lc/LICENSE",
+      "sha256": "977c541bd25ffe36975dde25c028c0cd15ddf3d08243983b58e8a6a3d9447523",
+      "source": "https://static.crates.io/crates/aws-lc-sys/aws-lc-sys-0.40.0.crate",
+      "member": "aws-lc-sys-0.40.0/aws-lc/LICENSE",
+      "archive_sha256": "f50037ee5e1e41e7b8f9d161680a725bd1626cb6f8c7e901f91f942850852fe7",
+      "distribution_scope": "TEST/SOURCE/HISTORICAL notices only; NOT native Deno binary redistribution clearance"
+    },
+    {
+      "path": "licenses/deno-runtime/crates/aws-lc-sys-0.40.0/aws-lc/third_party/fiat/LICENSE",
+      "sha256": "43e358d7b6eb109d0f51f7b3a090fd82607965767c25fadee39e922475de2061",
+      "source": "https://static.crates.io/crates/aws-lc-sys/aws-lc-sys-0.40.0.crate",
+      "member": "aws-lc-sys-0.40.0/aws-lc/third_party/fiat/LICENSE",
+      "archive_sha256": "f50037ee5e1e41e7b8f9d161680a725bd1626cb6f8c7e901f91f942850852fe7",
+      "distribution_scope": "TEST/SOURCE/HISTORICAL notices only; NOT native Deno binary redistribution clearance"
+    },
+    {
+      "path": "licenses/deno-runtime/crates/aws-lc-sys-0.46.0/LICENSE",
+      "sha256": "728536b4160e051f86d7c9c388f704866b3d512cd7df97ac3516c65279523c4e",
+      "source": "https://static.crates.io/crates/aws-lc-sys/aws-lc-sys-0.46.0.crate",
+      "member": "aws-lc-sys-0.46.0/LICENSE",
+      "archive_sha256": "f1622d8446a2d4b2ce0c7eefc73dd43a99779028d5ee5c2dd8073a658ba8a2bc",
+      "distribution_scope": "TEST/SOURCE/HISTORICAL notices only; NOT native Deno binary redistribution clearance"
+    },
+    {
+      "path": "licenses/deno-runtime/crates/aws-lc-sys-0.46.0/aws-lc/LICENSE",
+      "sha256": "977c541bd25ffe36975dde25c028c0cd15ddf3d08243983b58e8a6a3d9447523",
+      "source": "https://static.crates.io/crates/aws-lc-sys/aws-lc-sys-0.46.0.crate",
+      "member": "aws-lc-sys-0.46.0/aws-lc/LICENSE",
+      "archive_sha256": "f1622d8446a2d4b2ce0c7eefc73dd43a99779028d5ee5c2dd8073a658ba8a2bc",
+      "distribution_scope": "TEST/SOURCE/HISTORICAL notices only; NOT native Deno binary redistribution clearance"
+    },
+    {
+      "path": "licenses/deno-runtime/crates/aws-lc-sys-0.46.0/aws-lc/third_party/fiat/LICENSE",
+      "sha256": "43e358d7b6eb109d0f51f7b3a090fd82607965767c25fadee39e922475de2061",
+      "source": "https://static.crates.io/crates/aws-lc-sys/aws-lc-sys-0.46.0.crate",
+      "member": "aws-lc-sys-0.46.0/aws-lc/third_party/fiat/LICENSE",
+      "archive_sha256": "f1622d8446a2d4b2ce0c7eefc73dd43a99779028d5ee5c2dd8073a658ba8a2bc",
+      "distribution_scope": "TEST/SOURCE/HISTORICAL notices only; NOT native Deno binary redistribution clearance"
+    },
+    {
+      "path": "licenses/deno-runtime/crates/libc-0.2.186/LICENSE-APACHE",
+      "sha256": "62c7a1e35f56406896d7aa7ca52d0cc0d272ac022b5d2796e7d6905db8a3636a",
+      "source": "https://static.crates.io/crates/libc/libc-0.2.186.crate",
+      "member": "libc-0.2.186/LICENSE-APACHE",
+      "archive_sha256": "68ab91017fe16c622486840e4c83c9a37afeff978bd239b5293d61ece587de66",
+      "distribution_scope": "TEST/SOURCE/HISTORICAL notices only; NOT native Deno binary redistribution clearance"
+    },
+    {
+      "path": "licenses/deno-runtime/crates/libc-0.2.186/LICENSE-MIT",
+      "sha256": "123a331b5dbf04c30097fa43b8f858bc85df671fe776de498d01f3d6b7c1f69e",
+      "source": "https://static.crates.io/crates/libc/libc-0.2.186.crate",
+      "member": "libc-0.2.186/LICENSE-MIT",
+      "archive_sha256": "68ab91017fe16c622486840e4c83c9a37afeff978bd239b5293d61ece587de66",
+      "distribution_scope": "TEST/SOURCE/HISTORICAL notices only; NOT native Deno binary redistribution clearance"
+    },
+    {
+      "path": "licenses/deno-runtime/crates/libsqlite3-sys-0.38.1/LICENSE",
+      "sha256": "c10c1f27337546471e5f7e4e97fdd398b35b9d4e126115dcd22de8d8e65abf6f",
+      "source": "https://static.crates.io/crates/libsqlite3-sys/libsqlite3-sys-0.38.1.crate",
+      "member": "libsqlite3-sys-0.38.1/LICENSE",
+      "archive_sha256": "f6c19a05435c21ac299d71b6a9c13db3e3f47c520517d58990a462a1397a61db",
+      "distribution_scope": "TEST/SOURCE/HISTORICAL notices only; NOT native Deno binary redistribution clearance"
+    },
+    {
+      "path": "licenses/deno-runtime/crates/libsqlite3-sys-0.38.1/sqlcipher/LICENSE",
+      "sha256": "ea4fcb309f14a22065e1ea45362d494d320012249ed865fe9c7c0946db754131",
+      "source": "https://static.crates.io/crates/libsqlite3-sys/libsqlite3-sys-0.38.1.crate",
+      "member": "libsqlite3-sys-0.38.1/sqlcipher/LICENSE",
+      "archive_sha256": "f6c19a05435c21ac299d71b6a9c13db3e3f47c520517d58990a462a1397a61db",
+      "distribution_scope": "TEST/SOURCE/HISTORICAL notices only; NOT native Deno binary redistribution clearance"
+    },
+    {
+      "path": "licenses/deno-runtime/crates/libuv-sys-lite-1.48.4/LICENSE",
+      "sha256": "d6c090a9256b66d9e7e2b190ad63813d4fbb0312d97cba7427999610f9efcada",
+      "source": "https://static.crates.io/crates/libuv-sys-lite/libuv-sys-lite-1.48.4.crate",
+      "member": "libuv-sys-lite-1.48.4/LICENSE",
+      "archive_sha256": "ef43df715b26b66832106cde0adc4c156bc91f46fc35164ab257281f62657956",
+      "distribution_scope": "TEST/SOURCE/HISTORICAL notices only; NOT native Deno binary redistribution clearance"
+    },
+    {
+      "path": "licenses/deno-runtime/crates/libz-sys-1.1.20/LICENSE-APACHE",
+      "sha256": "a60eea817514531668d7e00765731449fe14d059d3249e0bc93b36de45f759f2",
+      "source": "https://static.crates.io/crates/libz-sys/libz-sys-1.1.20.crate",
+      "member": "libz-sys-1.1.20/LICENSE-APACHE",
+      "archive_sha256": "d2d16453e800a8cf6dd2fc3eb4bc99b786a9b90c663b8559a5b1a041bf89e472",
+      "distribution_scope": "TEST/SOURCE/HISTORICAL notices only; NOT native Deno binary redistribution clearance"
+    },
+    {
+      "path": "licenses/deno-runtime/crates/libz-sys-1.1.20/LICENSE-MIT",
+      "sha256": "34c467b6945a22696d060b8fdd2379d464acb3408d4c599d3dc5fe4fa1b4c84f",
+      "source": "https://static.crates.io/crates/libz-sys/libz-sys-1.1.20.crate",
+      "member": "libz-sys-1.1.20/LICENSE-MIT",
+      "archive_sha256": "d2d16453e800a8cf6dd2fc3eb4bc99b786a9b90c663b8559a5b1a041bf89e472",
+      "distribution_scope": "TEST/SOURCE/HISTORICAL notices only; NOT native Deno binary redistribution clearance"
+    },
+    {
+      "path": "licenses/deno-runtime/crates/libz-sys-1.1.20/src/zlib-ng/LICENSE.md",
+      "sha256": "d3c80be055d94d798eaa786116e84fa0b010bc11420b5d2060d978ea77845436",
+      "source": "https://static.crates.io/crates/libz-sys/libz-sys-1.1.20.crate",
+      "member": "libz-sys-1.1.20/src/zlib-ng/LICENSE.md",
+      "archive_sha256": "d2d16453e800a8cf6dd2fc3eb4bc99b786a9b90c663b8559a5b1a041bf89e472",
+      "distribution_scope": "TEST/SOURCE/HISTORICAL notices only; NOT native Deno binary redistribution clearance"
+    },
+    {
+      "path": "licenses/deno-runtime/crates/libz-sys-1.1.20/src/zlib/LICENSE",
+      "sha256": "845efc77857d485d91fb3e0b884aaa929368c717ae8186b66fe1ed2495753243",
+      "source": "https://static.crates.io/crates/libz-sys/libz-sys-1.1.20.crate",
+      "member": "libz-sys-1.1.20/src/zlib/LICENSE",
+      "archive_sha256": "d2d16453e800a8cf6dd2fc3eb4bc99b786a9b90c663b8559a5b1a041bf89e472",
+      "distribution_scope": "TEST/SOURCE/HISTORICAL notices only; NOT native Deno binary redistribution clearance"
+    },
+    {
+      "path": "licenses/deno-runtime/crates/libz-sys-1.1.20/src/zlib/contrib/dotzlib/LICENSE_1_0.txt",
+      "sha256": "36266a8fd073568394cb81cdb2b124f7fdae2c64c1a7ed09db34b4d22efa2951",
+      "source": "https://static.crates.io/crates/libz-sys/libz-sys-1.1.20.crate",
+      "member": "libz-sys-1.1.20/src/zlib/contrib/dotzlib/LICENSE_1_0.txt",
+      "archive_sha256": "d2d16453e800a8cf6dd2fc3eb4bc99b786a9b90c663b8559a5b1a041bf89e472",
+      "distribution_scope": "TEST/SOURCE/HISTORICAL notices only; NOT native Deno binary redistribution clearance"
+    },
+    {
+      "path": "licenses/deno-runtime/crates/ring-0.17.14/LICENSE",
+      "sha256": "b3d734001a94efff3579978d953391aa7115f877657d25eb54037a43875d078a",
+      "source": "https://static.crates.io/crates/ring/ring-0.17.14.crate",
+      "member": "ring-0.17.14/LICENSE",
+      "archive_sha256": "a4689e6c2294d81e88dc6261c768b63bc4fcdb852be6d1352498b114f61383b7",
+      "distribution_scope": "TEST/SOURCE/HISTORICAL notices only; NOT native Deno binary redistribution clearance"
+    },
+    {
+      "path": "licenses/deno-runtime/crates/ring-0.17.14/LICENSE-BoringSSL",
+      "sha256": "005fc765ddc5115da796cca915baa9557abae13ff35e0a47c47affc56f6c414d",
+      "source": "https://static.crates.io/crates/ring/ring-0.17.14.crate",
+      "member": "ring-0.17.14/LICENSE-BoringSSL",
+      "archive_sha256": "a4689e6c2294d81e88dc6261c768b63bc4fcdb852be6d1352498b114f61383b7",
+      "distribution_scope": "TEST/SOURCE/HISTORICAL notices only; NOT native Deno binary redistribution clearance"
+    },
+    {
+      "path": "licenses/deno-runtime/crates/ring-0.17.14/LICENSE-other-bits",
+      "sha256": "f025ccfb7dfb6bdfedc75ca0f67acc69e6fb4998143d834f7c2f38a29989680f",
+      "source": "https://static.crates.io/crates/ring/ring-0.17.14.crate",
+      "member": "ring-0.17.14/LICENSE-other-bits",
+      "archive_sha256": "a4689e6c2294d81e88dc6261c768b63bc4fcdb852be6d1352498b114f61383b7",
+      "distribution_scope": "TEST/SOURCE/HISTORICAL notices only; NOT native Deno binary redistribution clearance"
+    },
+    {
+      "path": "licenses/deno-runtime/crates/ring-0.17.14/src/polyfill/once_cell/LICENSE-APACHE",
+      "sha256": "a60eea817514531668d7e00765731449fe14d059d3249e0bc93b36de45f759f2",
+      "source": "https://static.crates.io/crates/ring/ring-0.17.14.crate",
+      "member": "ring-0.17.14/src/polyfill/once_cell/LICENSE-APACHE",
+      "archive_sha256": "a4689e6c2294d81e88dc6261c768b63bc4fcdb852be6d1352498b114f61383b7",
+      "distribution_scope": "TEST/SOURCE/HISTORICAL notices only; NOT native Deno binary redistribution clearance"
+    },
+    {
+      "path": "licenses/deno-runtime/crates/ring-0.17.14/src/polyfill/once_cell/LICENSE-MIT",
+      "sha256": "6ee2ed6c77710de911761acd5fc1ad1da00f476beb1a7ef27e78c2d1858deafc",
+      "source": "https://static.crates.io/crates/ring/ring-0.17.14.crate",
+      "member": "ring-0.17.14/src/polyfill/once_cell/LICENSE-MIT",
+      "archive_sha256": "a4689e6c2294d81e88dc6261c768b63bc4fcdb852be6d1352498b114f61383b7",
+      "distribution_scope": "TEST/SOURCE/HISTORICAL notices only; NOT native Deno binary redistribution clearance"
+    },
+    {
+      "path": "licenses/deno-runtime/crates/ring-0.17.14/third_party/fiat/LICENSE",
+      "sha256": "9eacbcb81be660840c714a560a9d65ba07913db98dd4baf969f78dd499fdd60f",
+      "source": "https://static.crates.io/crates/ring/ring-0.17.14.crate",
+      "member": "ring-0.17.14/third_party/fiat/LICENSE",
+      "archive_sha256": "a4689e6c2294d81e88dc6261c768b63bc4fcdb852be6d1352498b114f61383b7",
+      "distribution_scope": "TEST/SOURCE/HISTORICAL notices only; NOT native Deno binary redistribution clearance"
+    },
+    {
+      "path": "licenses/deno-runtime/crates/rustls-webpki-0.103.16/LICENSE",
+      "sha256": "5b698ca13897be3afdb7174256fa1574f8c6892b8bea1a66dd6469d3fe27885a",
+      "source": "https://static.crates.io/crates/rustls-webpki/rustls-webpki-0.103.16.crate",
+      "member": "rustls-webpki-0.103.16/LICENSE",
+      "archive_sha256": "4443b1b6d39d7c663139942cc4558262562d2c84123bb6282ef177009ca8b281",
+      "distribution_scope": "TEST/SOURCE/HISTORICAL notices only; NOT native Deno binary redistribution clearance"
+    },
+    {
+      "path": "licenses/deno-runtime/crates/temporal_capi-0.2.3/LICENSE-Apache",
+      "sha256": "4e6bdc19db64d455dbddc0ee2f53ecba556f0226d4558954b5f02673c7358e59",
+      "source": "https://static.crates.io/crates/temporal_capi/temporal_capi-0.2.3.crate",
+      "member": "temporal_capi-0.2.3/LICENSE-Apache",
+      "archive_sha256": "8a2a1f001e756a9f5f2d175a9965c4c0b3a054f09f30de3a75ab49765f2deb36",
+      "distribution_scope": "TEST/SOURCE/HISTORICAL notices only; NOT native Deno binary redistribution clearance"
+    },
+    {
+      "path": "licenses/deno-runtime/crates/temporal_capi-0.2.3/LICENSE-MIT",
+      "sha256": "073d3574ac6389e263360572b331e045dda7ac5cdba239ce5bdb02f299ef47bb",
+      "source": "https://static.crates.io/crates/temporal_capi/temporal_capi-0.2.3.crate",
+      "member": "temporal_capi-0.2.3/LICENSE-MIT",
+      "archive_sha256": "8a2a1f001e756a9f5f2d175a9965c4c0b3a054f09f30de3a75ab49765f2deb36",
+      "distribution_scope": "TEST/SOURCE/HISTORICAL notices only; NOT native Deno binary redistribution clearance"
+    },
+    {
+      "path": "licenses/deno-runtime/crates/v8-150.4.0/third_party/highway/src/debian/copyright",
+      "sha256": "6e4ecf1cae052b678ea3178dd4b3652d581ee66a82d58db8800dd7d80dd6de76",
+      "source": "https://static.crates.io/crates/v8/v8-150.4.0.crate",
+      "member": "v8-150.4.0/third_party/highway/src/debian/copyright",
+      "archive_sha256": "42a978ff11f15b24e5c05a7123cf2b68f41e763546699781a924ef4e2cf43a49",
+      "distribution_scope": "TEST/SOURCE/HISTORICAL notices only; NOT native Deno binary redistribution clearance"
+    },
+    {
+      "path": "licenses/deno-runtime/crates/webpki-roots-0.26.11/LICENSE",
+      "sha256": "e271993808fec50ab29350b39539cdec611a9103f827e0aa26d61da70e2d33f8",
+      "source": "https://static.crates.io/crates/webpki-roots/webpki-roots-0.26.11.crate",
+      "member": "webpki-roots-0.26.11/LICENSE",
+      "archive_sha256": "521bc38abb08001b01866da9f51eb7c5d647a19260e00054a8c7fd5f9e57f7a9",
+      "distribution_scope": "TEST/SOURCE/HISTORICAL notices only; NOT native Deno binary redistribution clearance"
+    },
+    {
+      "path": "licenses/deno-runtime/crates/webpki-roots-1.0.10/LICENSE",
+      "sha256": "e271993808fec50ab29350b39539cdec611a9103f827e0aa26d61da70e2d33f8",
+      "source": "https://static.crates.io/crates/webpki-roots/webpki-roots-1.0.10.crate",
+      "member": "webpki-roots-1.0.10/LICENSE",
+      "archive_sha256": "1c1c8e20c8a38fc7d65abfe74eb7280e4aa667e8eec8bc84996d2874810748d9",
+      "distribution_scope": "TEST/SOURCE/HISTORICAL notices only; NOT native Deno binary redistribution clearance"
+    },
+    {
+      "path": "licenses/deno-runtime/crates/zstd-sys-2.0.15+zstd.1.5.7/LICENSE",
+      "sha256": "a77b7cfeaf911ed410ffbe76f0cb2b24ad8a4d94e7ead5727e914425c416cc63",
+      "source": "https://static.crates.io/crates/zstd-sys/zstd-sys-2.0.15+zstd.1.5.7.crate",
+      "member": "zstd-sys-2.0.15+zstd.1.5.7/LICENSE",
+      "archive_sha256": "eb81183ddd97d0c74cedf1d50d85c8d08c1b8b68ee863bdee9e706eedba1a237",
+      "distribution_scope": "TEST/SOURCE/HISTORICAL notices only; NOT native Deno binary redistribution clearance"
+    },
+    {
+      "path": "licenses/deno-runtime/crates/zstd-sys-2.0.15+zstd.1.5.7/LICENSE.Apache-2.0",
+      "sha256": "0d542e0c8804e39aa7f37eb00da5a762149dc682d7829451287e11b938e94594",
+      "source": "https://static.crates.io/crates/zstd-sys/zstd-sys-2.0.15+zstd.1.5.7.crate",
+      "member": "zstd-sys-2.0.15+zstd.1.5.7/LICENSE.Apache-2.0",
+      "archive_sha256": "eb81183ddd97d0c74cedf1d50d85c8d08c1b8b68ee863bdee9e706eedba1a237",
+      "distribution_scope": "TEST/SOURCE/HISTORICAL notices only; NOT native Deno binary redistribution clearance"
+    },
+    {
+      "path": "licenses/deno-runtime/crates/zstd-sys-2.0.15+zstd.1.5.7/LICENSE.BSD-3-Clause",
+      "sha256": "48341f685c87304089aa099b23c386f8bacc519ef555aa7a13e239908907b3fd",
+      "source": "https://static.crates.io/crates/zstd-sys/zstd-sys-2.0.15+zstd.1.5.7.crate",
+      "member": "zstd-sys-2.0.15+zstd.1.5.7/LICENSE.BSD-3-Clause",
+      "archive_sha256": "eb81183ddd97d0c74cedf1d50d85c8d08c1b8b68ee863bdee9e706eedba1a237",
+      "distribution_scope": "TEST/SOURCE/HISTORICAL notices only; NOT native Deno binary redistribution clearance"
+    },
+    {
+      "path": "licenses/deno-runtime/crates/zstd-sys-2.0.15+zstd.1.5.7/LICENSE.Mit",
+      "sha256": "129e8edef29e9abcd2ebabe252f4ef1b1289cdca356bf0040284a2fbccfb96c8",
+      "source": "https://static.crates.io/crates/zstd-sys/zstd-sys-2.0.15+zstd.1.5.7.crate",
+      "member": "zstd-sys-2.0.15+zstd.1.5.7/LICENSE.Mit",
+      "archive_sha256": "eb81183ddd97d0c74cedf1d50d85c8d08c1b8b68ee863bdee9e706eedba1a237",
+      "distribution_scope": "TEST/SOURCE/HISTORICAL notices only; NOT native Deno binary redistribution clearance"
+    },
+    {
+      "path": "licenses/deno-runtime/crates/zstd-sys-2.0.15+zstd.1.5.7/zstd/COPYING",
+      "sha256": "f9c375a1be4a41f7b70301dd83c91cb89e41567478859b77eef375a52d782505",
+      "source": "https://static.crates.io/crates/zstd-sys/zstd-sys-2.0.15+zstd.1.5.7.crate",
+      "member": "zstd-sys-2.0.15+zstd.1.5.7/zstd/COPYING",
+      "archive_sha256": "eb81183ddd97d0c74cedf1d50d85c8d08c1b8b68ee863bdee9e706eedba1a237",
+      "distribution_scope": "TEST/SOURCE/HISTORICAL notices only; NOT native Deno binary redistribution clearance"
+    },
+    {
+      "path": "licenses/deno-runtime/crates/zstd-sys-2.0.15+zstd.1.5.7/zstd/LICENSE",
+      "sha256": "7055266497633c9025b777c78eb7235af13922117480ed5c674677adc381c9d8",
+      "source": "https://static.crates.io/crates/zstd-sys/zstd-sys-2.0.15+zstd.1.5.7.crate",
+      "member": "zstd-sys-2.0.15+zstd.1.5.7/zstd/LICENSE",
+      "archive_sha256": "eb81183ddd97d0c74cedf1d50d85c8d08c1b8b68ee863bdee9e706eedba1a237",
+      "distribution_scope": "TEST/SOURCE/HISTORICAL notices only; NOT native Deno binary redistribution clearance"
+    },
+    {
+      "path": "licenses/deno-runtime/inventory.json",
+      "sha256": "4dbb49e4741854a5abed34c82ee1dcd9ab2b78b547b4001c08f8fa97088ed621",
+      "source": "https://github.com/denoland/deno/releases/download/v2.9.8/deno_src.tar.gz",
+      "member": "deno/Cargo.lock",
+      "archive_sha256": "b57d0281c1647effc735f242ba52bc409747fc6ed6ad4946e76f062c67e113eb",
+      "distribution_scope": "TEST/SOURCE/HISTORICAL notices only; NOT native Deno binary redistribution clearance"
+    },
+    {
+      "path": "licenses/deno-runtime/node-LICENSE",
+      "sha256": "c2cfccb812fe482101a8f04597dfc5a9991a6b2748266c47ac91b6a5aae15383",
+      "source": "https://github.com/denoland/deno/releases/download/v2.9.8/deno_src.tar.gz",
+      "member": "deno/cli/tsc/dts/node/LICENSE",
+      "archive_sha256": "b57d0281c1647effc735f242ba52bc409747fc6ed6ad4946e76f062c67e113eb",
+      "distribution_scope": "TEST/SOURCE/HISTORICAL notices only; NOT native Deno binary redistribution clearance"
+    },
+    {
+      "path": "licenses/deno-runtime/rust-COPYRIGHT",
+      "sha256": "172020dbfd5b53a226dfde77616190a48dcff519b0bc0e6deb91a8450782c4af",
+      "source": "https://raw.githubusercontent.com/rust-lang/rust/1.95.0/COPYRIGHT",
+      "distribution_scope": "TEST/SOURCE/HISTORICAL notices only; NOT native Deno binary redistribution clearance"
+    },
+    {
+      "path": "licenses/deno-runtime/rust-LICENSE-APACHE",
+      "sha256": "62c7a1e35f56406896d7aa7ca52d0cc0d272ac022b5d2796e7d6905db8a3636a",
+      "source": "https://raw.githubusercontent.com/rust-lang/rust/1.95.0/LICENSE-APACHE",
+      "distribution_scope": "TEST/SOURCE/HISTORICAL notices only; NOT native Deno binary redistribution clearance"
+    },
+    {
+      "path": "licenses/deno-runtime/rust-LICENSE-MIT",
+      "sha256": "b71bd43a069ca0641a9ecfe585ca7b3c53b5cc1608f8b68321168698e28b5ea1",
+      "source": "https://raw.githubusercontent.com/rust-lang/rust/1.95.0/LICENSE-MIT",
+      "distribution_scope": "TEST/SOURCE/HISTORICAL notices only; NOT native Deno binary redistribution clearance"
+    },
+    {
+      "path": "licenses/deno-runtime/rust-toolchain.toml",
+      "sha256": "62a76263c7b819f8493c9099e1a13f78ecc31ef7fac7a51e7dfe1c8550ae613c",
+      "source": "https://github.com/denoland/deno/releases/download/v2.9.8/deno_src.tar.gz",
+      "member": "deno/rust-toolchain.toml",
+      "archive_sha256": "b57d0281c1647effc735f242ba52bc409747fc6ed6ad4946e76f062c67e113eb",
+      "distribution_scope": "TEST/SOURCE/HISTORICAL notices only; NOT native Deno binary redistribution clearance"
+    },
+    {
+      "path": "licenses/deno-runtime/rusty-v8-LICENSE",
+      "sha256": "1c6356fb751d45f0c53093ebf8a7f5e580e802f51999178e19d60f3ec39e147d",
+      "source": "https://raw.githubusercontent.com/denoland/rusty_v8/5c15a6995c9bb4bacd3e341b59fff32c909c80bf/LICENSE",
+      "distribution_scope": "TEST/SOURCE/HISTORICAL notices only; NOT native Deno binary redistribution clearance"
+    },
+    {
+      "path": "licenses/deno-runtime/undici-LICENSE",
+      "sha256": "a6db8096b2707bc0102d256917d4d33f298ba36d8c3f25de067a2b5bb379db27",
+      "source": "https://github.com/denoland/deno/releases/download/v2.9.8/deno_src.tar.gz",
+      "member": "deno/cli/tsc/dts/node/undici/LICENSE",
+      "archive_sha256": "b57d0281c1647effc735f242ba52bc409747fc6ed6ad4946e76f062c67e113eb",
+      "distribution_scope": "TEST/SOURCE/HISTORICAL notices only; NOT native Deno binary redistribution clearance"
+    },
+    {
+      "path": "licenses/deno-runtime/webgpu-LICENSE.md",
+      "sha256": "f62497fffecc0852960c8d3e6934b9db86d16396e9b604072e923892cae3a588",
+      "source": "https://github.com/denoland/deno/releases/download/v2.9.8/deno_src.tar.gz",
+      "member": "deno/ext/webgpu/LICENSE.md",
+      "archive_sha256": "b57d0281c1647effc735f242ba52bc409747fc6ed6ad4946e76f062c67e113eb",
+      "distribution_scope": "TEST/SOURCE/HISTORICAL notices only; NOT native Deno binary redistribution clearance"
+    },
+    {
+      "path": "licenses/dependencies/go-github.com_coreos_go-oidc_v3_v3.21.0-LICENSE",
+      "sha256": "cb5e8e7e5f4a3988e1063c142c60dc2df75605f4c46515e776e3aca6df976e14",
+      "source": "Checksum-verified Go module source github.com/coreos/go-oidc/v3@v3.21.0",
+      "distribution_scope": "linked native Go module and inherited third-party notices"
+    },
+    {
+      "path": "licenses/dependencies/go-github.com_coreos_go-oidc_v3_v3.21.0-NOTICE",
+      "sha256": "dccd26c6fd9c296daf44d0bc56bb4efc566edd4880381b3331c9a63e6e471338",
+      "source": "Checksum-verified Go module source github.com/coreos/go-oidc/v3@v3.21.0",
+      "distribution_scope": "linked native Go module and inherited third-party notices"
+    },
+    {
+      "path": "licenses/dependencies/go-github.com_dustin_go-humanize_v1.1.0-LICENSE",
+      "sha256": "a973b4498c13eb74baa2a8e5c351426a6826f2fcdd909916dbe53ee2e755fd71",
+      "source": "Checksum-verified Go module source github.com/dustin/go-humanize@v1.1.0",
+      "distribution_scope": "linked native Go module and inherited third-party notices"
+    },
+    {
+      "path": "licenses/dependencies/go-github.com_go-jose_go-jose_v4_v4.1.9-LICENSE",
+      "sha256": "cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30",
+      "source": "Checksum-verified Go module source github.com/go-jose/go-jose/v4@v4.1.9",
+      "distribution_scope": "linked native Go module and inherited third-party notices"
+    },
+    {
+      "path": "licenses/dependencies/go-github.com_google_uuid_v1.6.0-LICENSE",
+      "sha256": "0a8d61ed3cbfd5312326e8126c31ce9c627a283adc99131b56896d29ada04b2d",
+      "source": "Checksum-verified Go module source github.com/google/uuid@v1.6.0",
+      "distribution_scope": "linked native Go module and inherited third-party notices"
+    },
+    {
+      "path": "licenses/dependencies/go-github.com_remyoudompheng_bigfft_v0.0.0-20230129092748-24d4a6f8daec-LICENSE",
+      "sha256": "dd26a7abddd02e2d0aba97805b31f248ef7835d9e10da289b22e3b8ab78b324d",
+      "source": "Checksum-verified Go module source github.com/remyoudompheng/bigfft@v0.0.0-20230129092748-24d4a6f8daec",
+      "distribution_scope": "linked native Go module and inherited third-party notices"
+    },
+    {
+      "path": "licenses/dependencies/go-golang.org_x_oauth2_v0.38.0-LICENSE",
+      "sha256": "911f8f5782931320f5b8d1160a76365b83aea6447ee6c04fa6d5591467db9dad",
+      "source": "Checksum-verified Go module source golang.org/x/oauth2@v0.38.0",
+      "distribution_scope": "linked native Go module and inherited third-party notices"
+    },
+    {
+      "path": "licenses/dependencies/go-golang.org_x_sys_v0.49.0-LICENSE",
+      "sha256": "911f8f5782931320f5b8d1160a76365b83aea6447ee6c04fa6d5591467db9dad",
+      "source": "Checksum-verified Go module source golang.org/x/sys@v0.49.0",
+      "distribution_scope": "linked native Go module and inherited third-party notices"
+    },
+    {
+      "path": "licenses/dependencies/go-modernc.org_libc_v1.80.1-LICENSE",
+      "sha256": "95ff867eb55a56935fa7492406cfa953fb7c13ca73f4c0a86ae05756b4605600",
+      "source": "Checksum-verified Go module source modernc.org/libc@v1.80.1",
+      "distribution_scope": "linked native Go module and inherited third-party notices"
+    },
+    {
+      "path": "licenses/dependencies/go-modernc.org_libc_v1.80.1-LICENSE-3RD-PARTY.md",
+      "sha256": "f597097efe3d97021f89170746bd3a0fb9a8b6fb26b82043ed68a4e0283bee6c",
+      "source": "Checksum-verified Go module source modernc.org/libc@v1.80.1",
+      "distribution_scope": "linked native Go module and inherited third-party notices"
+    },
+    {
+      "path": "licenses/dependencies/go-modernc.org_mathutil_v1.7.1-LICENSE",
+      "sha256": "bfa9bf72a72ca009fd62a8f84fca3dca67e51d93af96352723646599898b6cf5",
+      "source": "Checksum-verified Go module source modernc.org/mathutil@v1.7.1",
+      "distribution_scope": "linked native Go module and inherited third-party notices"
+    },
+    {
+      "path": "licenses/dependencies/go-modernc.org_memory_v1.12.1-LICENSE",
+      "sha256": "59895e669f48f168b6b858358f6005779cdf40a265f7828813061b56af67b496",
+      "source": "Checksum-verified Go module source modernc.org/memory@v1.12.1",
+      "distribution_scope": "linked native Go module and inherited third-party notices"
+    },
+    {
+      "path": "licenses/dependencies/go-modernc.org_memory_v1.12.1-LICENSE-GO",
+      "sha256": "2d36597f7117c38b006835ae7f537487207d8ec407aa9d9980794b2030cbc067",
+      "source": "Checksum-verified Go module source modernc.org/memory@v1.12.1",
+      "distribution_scope": "linked native Go module and inherited third-party notices"
+    },
+    {
+      "path": "licenses/dependencies/go-modernc.org_memory_v1.12.1-LICENSE-LOGO",
+      "sha256": "5ae5bee3072a841376451b48d8cfcec7188e10543926d5870828d36c8a750dc5",
+      "source": "Checksum-verified Go module source modernc.org/memory@v1.12.1",
+      "distribution_scope": "linked native Go module and inherited third-party notices"
+    },
+    {
+      "path": "licenses/dependencies/go-modernc.org_memory_v1.12.1-LICENSE-MMAP-GO",
+      "sha256": "c2eba69f20d05414538c3a5df7694dde392e065ff70882e1625e90f5d6659fff",
+      "source": "Checksum-verified Go module source modernc.org/memory@v1.12.1",
+      "distribution_scope": "linked native Go module and inherited third-party notices"
+    },
+    {
+      "path": "licenses/dependencies/go-modernc.org_sqlite_v1.62.0-LICENSE",
+      "sha256": "c6fe05491a60ae13bcd223088d2705e36dede24e5587226231d2459ada5c4822",
+      "source": "Checksum-verified Go module source modernc.org/sqlite@v1.62.0",
+      "distribution_scope": "linked native Go module and inherited third-party notices"
+    },
+    {
+      "path": "licenses/dependencies/go-modernc.org_sqlite_v1.62.0-LICENSE-3RD-PARTY.md",
+      "sha256": "f4a00ade8f4057ab0ea49097d9c459df8559fcf10ca78da0c950343fb7428d37",
+      "source": "Checksum-verified Go module source modernc.org/sqlite@v1.62.0",
+      "distribution_scope": "linked native Go module and inherited third-party notices"
+    },
+    {
+      "path": "licenses/dependencies/go-modernc.org_sqlite_v1.62.0-LICENSE-SQLITE",
+      "sha256": "8438c9c89b849131ead81d5435cb97fcf052df5b0b286dda8a2d4c29e6cb3fd0",
+      "source": "Checksum-verified Go module source modernc.org/sqlite@v1.62.0",
+      "distribution_scope": "linked native Go module and inherited third-party notices"
+    },
+    {
+      "path": "licenses/dependencies/go-modernc.org_sqlite_v1.62.0-LICENSE-SQLITE_VEC",
+      "sha256": "6ce72bbe12d975bd5286e5ab0a064c069693300c47bccbc57bec18485f1621ea",
+      "source": "Checksum-verified Go module source modernc.org/sqlite@v1.62.0",
+      "distribution_scope": "linked native Go module and inherited third-party notices"
+    },
+    {
+      "path": "licenses/dependencies/npm-_vrtmrz_livesync-commonlib_0.2.0-LICENSE",
+      "sha256": "d05a1afe10b32ae7cd26c36edbfc57c460102c27927013384fc50452d3538cd8",
+      "source": "Pinned commonlib 0.2.0 npm source; adapted native protocol",
+      "distribution_scope": "native Go static binary/adapted source notices"
+    },
+    {
+      "path": "licenses/dependencies/npm-octagonal-wheels_0.1.57-LICENSE",
+      "sha256": "cf2624427d5f686c75611a729bbcaea089dceb3d13493bc451524dad48db8762",
+      "source": "Pinned octagonal-wheels 0.1.57 npm source; adapted native protocol",
+      "distribution_scope": "native Go static binary/adapted source notices"
+    },
+    {
+      "path": "licenses/evidence/deno-tag.json",
+      "sha256": "48fb7aa9080e4a4b4c8a8c32f6f0e36045f1b975ce34bcdcc716f7a5342e5add",
+      "source": "https://api.github.com/repos/denoland/deno/git/ref/tags/v2.9.8",
+      "distribution_scope": "TEST/SOURCE/HISTORICAL notices only; NOT native Deno binary redistribution clearance"
+    },
+    {
+      "path": "licenses/evidence/rusty-v8-tree.json",
+      "sha256": "b30a63a2217d64660297e2fed3c95d13073e4bf00f6b5a11f13ec78a252823cc",
+      "source": "https://api.github.com/repos/denoland/rusty_v8/git/trees/5c15a6995c9bb4bacd3e341b59fff32c909c80bf",
+      "distribution_scope": "TEST/SOURCE/HISTORICAL notices only; NOT native Deno binary redistribution clearance"
+    },
+    {
+      "path": "licenses/evidence/tr46-license-commit.json",
+      "sha256": "c2225b970272514830b9e470c300765cec77509100e09b4f2a3f968636be543b",
+      "source": "https://api.github.com/repos/jsdom/tr46/commits/3a6f29721e7063b9ffd421e461a54beae6170001"
+    },
+    {
+      "path": "licenses/evidence/tr46-unicode-header.txt",
+      "sha256": "28d7dbb368fbb77523f2aebcf4b619990fce5228cceb24004256a7bcf006f4b1",
+      "source": "https://www.unicode.org/Public/idna/8.0.0/IdnaMappingTable.txt",
+      "note": "Original data copyright header; generated table matched all 8179 rows."
+    },
+    {
+      "path": "licenses/go-runtime/inline-notices.txt",
+      "sha256": "a81d7c7ee2aaf6afaf942472a40173c5fb5f4e94478927cfcc1c3960e9f0ca47",
+      "source": "Go go1.27.4 standard library and checksum-locked linked Go module sources",
+      "note": "Exact source comment blocks; module source hashes recorded beside each block",
+      "distribution_scope": "native Go static binary and corresponding source"
+    },
+    {
+      "path": "licenses/go-runtime/inventory.json",
+      "sha256": "c53b55e987e9841beff4c2cb5e11ee863c630d499676fea50d50a452b01642b4",
+      "source": "CGO_ENABLED=0 GOOS=linux GOARCH={amd64,arm64} go list -mod=readonly -tags=netgo,osusergo -deps -json .",
+      "distribution_scope": "native Go static binary and corresponding source"
+    },
+    {
+      "path": "licenses/go-runtime/stdlib-vendor/golang.org/x/crypto/LICENSE",
+      "sha256": "911f8f5782931320f5b8d1160a76365b83aea6447ee6c04fa6d5591467db9dad",
+      "source": "https://go.googlesource.com/go/+/refs/tags/go1.27.4/src/vendor/golang.org/x/crypto/LICENSE",
+      "distribution_scope": "native Go static binary and corresponding source"
+    },
+    {
+      "path": "licenses/go-runtime/stdlib-vendor/golang.org/x/net/LICENSE",
+      "sha256": "911f8f5782931320f5b8d1160a76365b83aea6447ee6c04fa6d5591467db9dad",
+      "source": "https://go.googlesource.com/go/+/refs/tags/go1.27.4/src/vendor/golang.org/x/net/LICENSE",
+      "distribution_scope": "native Go static binary and corresponding source"
+    },
+    {
+      "path": "licenses/go-runtime/stdlib-vendor/golang.org/x/sys/LICENSE",
+      "sha256": "911f8f5782931320f5b8d1160a76365b83aea6447ee6c04fa6d5591467db9dad",
+      "source": "https://go.googlesource.com/go/+/refs/tags/go1.27.4/src/vendor/golang.org/x/sys/LICENSE",
+      "distribution_scope": "native Go static binary and corresponding source"
+    },
+    {
+      "path": "licenses/go-runtime/stdlib-vendor/golang.org/x/text/LICENSE",
+      "sha256": "911f8f5782931320f5b8d1160a76365b83aea6447ee6c04fa6d5591467db9dad",
+      "source": "https://go.googlesource.com/go/+/refs/tags/go1.27.4/src/vendor/golang.org/x/text/LICENSE",
+      "distribution_scope": "native Go static binary and corresponding source"
+    },
+    {
+      "path": "licenses/go.txt",
+      "sha256": "911f8f5782931320f5b8d1160a76365b83aea6447ee6c04fa6d5591467db9dad",
+      "source": "Go 1.27.4 LICENSE",
+      "distribution_scope": "native Go static binary/adapted source notices"
+    },
+    {
+      "path": "licenses/htmx.txt",
+      "sha256": "d3d2456f76414f2456104660ebd65aff1c04cd7966b942bdabd63f3cdb316a38",
+      "source": "htmx 4.0.2 local vendored asset notice",
+      "distribution_scope": "native Go static binary/adapted source notices"
+    },
+    {
+      "path": "licenses/setup-helper.txt",
+      "sha256": "efa5ff2a54dc8c5782d4958b9122932b7412cf4ebf50be3cdd1e5822317b3abd",
+      "source": "https://github.com/vrtmrz/obsidian-livesync/blob/daa450c6c780698ed5514fcb2d70899291193cfd/LICENSE"
+    },
+    {
+      "path": "licenses/tr46-unicode.txt",
+      "sha256": "e7a93b009565cfce55919a381437ac4db883e9da2126fa28b91d12732bc53d96",
+      "source": "https://www.unicode.org/license.txt"
+    },
+    {
+      "path": "licenses/tr46.txt",
+      "sha256": "eeed1ca176eebad5c73870e233cfff03981fecd319c969475dfa3633036c336b",
+      "source": "https://raw.githubusercontent.com/jsdom/tr46/3a6f29721e7063b9ffd421e461a54beae6170001/LICENSE.md"
+    },
+    {
+      "path": "licenses/v8.txt",
+      "sha256": "6ab33af8774a0f396ee3aeeb761e3229057682d6f9fa7f572e390c2cb3a6e509",
+      "source": "https://raw.githubusercontent.com/denoland/v8/ac1e23989121713ca642f6650b34deff7b686896/LICENSE",
+      "distribution_scope": "TEST/SOURCE/HISTORICAL notices only; NOT native Deno binary redistribution clearance"
+    }
+  ],
+  "publication_blockers": [],
+  "profile": "native-go-static-linux",
+  "release_requirements": [
+    "Both clean exact-revision static Go architecture archives and complete recursive legal assets",
+    "Exact matching source archive and version-specific public corresponding-source offer; local syntax check does not prove hosting/UI availability",
+    "For image publication: both flattened scratch image exports, exact CA data/source/notice profile, no unreviewed OS executables/libraries",
+    "Any Deno/runtime helper reintroduction INVALIDATES profile; its native closure remains unreviewed"
+  ]
+}

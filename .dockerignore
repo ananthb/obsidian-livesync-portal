@@ -1,0 +1,7 @@
+.git
+config.json
+secrets
+data
+dist
+build
+.env

@@ -1,0 +1,71 @@
+# SPDX-License-Identifier: AGPL-3.0-only
+name: obsidian-livesync-portal
+services:
+  proxy:
+    image: caddy:2.11.9@sha256:4851e54a46b206517c574821bb5cc67f170d2156041e9fbc4c9193b45e84a75b
+    environment:
+      PORTAL_HOST: ${PORTAL_HOST:?set PORTAL_HOST}
+      OIDC_HOST: ${OIDC_HOST:?set OIDC_HOST}
+      COUCH_HOST: ${COUCH_HOST:?set COUCH_HOST}
+    ports: ['80:80', '443:443']
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    restart: unless-stopped
+    healthcheck:
+      test: ['CMD', 'wget', '-q', '-O', '/dev/null', 'http://127.0.0.1:2019/config/']
+      interval: 30s
+      timeout: 5s
+      retries: 3
+  portal:
+    build:
+      context: ..
+    read_only: true
+    cap_drop: [ALL]
+    security_opt: ['no-new-privileges:true']
+    tmpfs: ['/tmp:rw,noexec,nosuid,size=16m']
+    secrets: [portal_config]
+    volumes: [portal_data:/data]
+    restart: unless-stopped
+    depends_on:
+      couch: {condition: service_healthy}
+      oidc: {condition: service_healthy}
+      proxy: {condition: service_healthy}
+    deploy:
+      replicas: 1
+  couch:
+    image: couchdb:3.5.1@sha256:ccea1e8035bf7afd68336e24056a1ca9c1c46d7abe42da686322c0ac7218e5c2
+    entrypoint: ['tini', '--', '/bin/bash', '/run/configure-couch.sh']
+    volumes:
+      - couch_data:/opt/couchdb/data
+      - ./couchdb.ini:/run/livesync.ini:ro
+      - ./couch-entrypoint.sh:/run/configure-couch.sh:ro
+    secrets: [couch_config]
+    restart: unless-stopped
+    healthcheck:
+      test: ['CMD', 'curl', '-fsS', 'http://127.0.0.1:5984/_up']
+      interval: 10s
+      timeout: 5s
+      retries: 10
+  oidc:
+    image: ghcr.io/dexidp/dex:v2.46.1@sha256:65b72ca0f4b0bf6d4ada84ec21da8851782563404ac7b8f926923d27ceced9ab
+    command: ['dex', 'serve', '/run/secrets/dex_config']
+    secrets: [dex_config]
+    volumes: [dex_data:/var/dex]
+    restart: unless-stopped
+    healthcheck:
+      test: ['CMD', 'wget', '-q', '-O', '/dev/null', 'http://127.0.0.1:5558/healthz']
+      interval: 10s
+      timeout: 5s
+      retries: 10
+secrets:
+  portal_config: {file: ../secrets/portal.json}
+  dex_config: {file: ../secrets/dex.json}
+  couch_config: {file: ../secrets/couch.ini}
+volumes:
+  portal_data:
+  couch_data:
+  dex_data:
+  caddy_data:
+  caddy_config:

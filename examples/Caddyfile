@@ -1,0 +1,10 @@
+# SPDX-License-Identifier: AGPL-3.0-only
+{$PORTAL_HOST} {
+  reverse_proxy portal:8080
+}
+{$OIDC_HOST} {
+  reverse_proxy oidc:5556
+}
+{$COUCH_HOST} {
+  reverse_proxy couch:5984
+}

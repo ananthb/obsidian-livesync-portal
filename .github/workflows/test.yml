@@ -1,0 +1,52 @@
+# SPDX-License-Identifier: AGPL-3.0-only
+name: test
+on: [push, pull_request]
+permissions:
+  contents: read
+jobs:
+  test:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - run: mkdir -p /tmp/opencode
+      - uses: actions/setup-go@d8cbb8045d7f43706b9177cceb36c1f91a6644d5 # v7.1.0
+        with:
+          go-version: 1.27.4
+      - uses: denoland/setup-deno@22d081ff2d3a40755e97629de92e3bcbfa7cf2ed # v2.0.5
+        with:
+          deno-version: v2.9.8
+      - run: bash scripts/test-interop.sh
+      - run: go test -race ./... && go vet ./...
+        env:
+          SETUP_INTEROP_REQUIRED: '1'
+      - uses: goreleaser/goreleaser-action@a4f02ab5355a589de60d917a659ce617ed19b3de # v7.3.0
+        with:
+          distribution: goreleaser
+          version: v2.20.3
+          install-only: true
+      - run: goreleaser check && goreleaser release --snapshot --clean --skip=publish,sign,sbom
+        env:
+          RELEASE_OWNER: '${{ github.repository_owner }}'
+          RELEASE_REPO: obsidian-livesync-portal
+      - run: bash scripts/artifact-smoke.sh
+        env:
+          SETUP_INTEROP_REQUIRED: '1'
+      - name: Inspect static binaries for both architectures
+        run: bash scripts/check-static.sh dist/portal_linux_amd64_v1/livesync-portal dist/portal_linux_arm64_v8.0/livesync-portal
+      - run: bash scripts/package-source.sh
+      - name: Verify actual archives and exact Corresponding Source
+        run: |
+          version=$(jq -er '.version' dist/metadata.json)
+          python3 scripts/license-provenance.py --release \
+            --archive dist/obsidian-livesync-portal_*_linux_amd64.tar.gz \
+            --archive dist/obsidian-livesync-portal_*_linux_arm64.tar.gz \
+            --source-archive "dist/obsidian-livesync-portal_${version}_source.tar.gz" \
+            --revision "$GITHUB_SHA" \
+            --source-url "https://github.com/ananthb/obsidian-livesync-portal/releases/download/source-$GITHUB_SHA/obsidian-livesync-portal_${version}_source.tar.gz"
+      - run: docker compose -f examples/compose.yaml config --quiet
+        env:
+          PORTAL_HOST: portal.example.test
+          OIDC_HOST: id.example.test
+          COUCH_HOST: couch.example.test
+      - run: docker build -t obsidian-livesync-portal:test .
+      - run: bash scripts/image-smoke.sh obsidian-livesync-portal:test
