@@ -23,8 +23,12 @@ export OIDC_HOST=id.example.com
 export COUCH_HOST=couch.example.com
 export DEMO_BCRYPT='<bcrypt-hash>'
 bash examples/configure.sh
+bash scripts/build-local.sh
 docker compose --env-file .env -f examples/compose.yaml up -d
 ```
+
+Building the image requires Go 1.27.4, GoReleaser OSS 2.20.3 and Docker.
+See [image/runtime and release details](RELEASING.md).
 
 ### Binary
 

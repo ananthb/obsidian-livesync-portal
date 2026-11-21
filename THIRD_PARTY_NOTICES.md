@@ -4,7 +4,7 @@
 First-party code/modifications are **AGPL-3.0-only**, not “or later”. Original
 third-party grants and copyright/permission/disclaimer notices remain in force.
 
-## Native Go release / scratch image
+## Native Go release
 
 | Component | License / retained notice |
 |---|---|
@@ -14,15 +14,31 @@ third-party grants and copyright/permission/disclaimer notices remain in force.
 | Adapted octagonal-wheels 0.1.57 crypto protocol | MIT, `licenses/dependencies/npm-octagonal-wheels_0.1.57-LICENSE` |
 | 11 linked Go modules, including translated modernc SQLite/libc origins | `licenses/go-runtime/inventory.json` and exact module notices in `licenses/dependencies/`; flattened modernc third-party notices include transpiled native origins |
 | Go 1.27.4 runtime/standard library | BSD-3-Clause plus original inline grants/attributions, `licenses/go.txt`, `licenses/go-runtime/inline-notices.txt`, `licenses/go-runtime/stdlib-vendor/` |
-| Mozilla CA data in scratch image | MPL-2.0, exact source, Debian copyright and conversion/build source under `licenses/ca-bundle/`; see its provenance manifest |
+| Historical custom Mozilla CA evidence (not the current runtime trust store) | MPL-2.0, exact source, Debian copyright and conversion/build source under `licenses/ca-bundle/`; see its provenance manifest |
 | Independently fetched Compose service images | Their original licenses; not embedded in or AGPL-relicensed by the portal |
 
-The reviewed release profile is a `CGO_ENABLED=0` static Linux Go binary, with
-`netgo,osusergo` tags, and a scratch image containing that binary, intentionally
-copied CA data and these notices/source materials. No Deno/V8/Rust runtime,
-external setup helper, glibc or libgcc is part of this profile. Artifacts must
-be checked, not inferred from build configuration. A different profile needs
-review of its actual distributed components.
+The reviewed binary profile is `CGO_ENABLED=0` static Linux Go with
+`netgo,osusergo` tags. No Deno/V8/Rust runtime, external setup helper, glibc or
+libgcc is linked into it. Artifacts must be checked, not inferred from settings.
+
+## Distroless image profile: scoped review approved
+
+The current ko image uses the digest-pinned distroless static Debian 13 nonroot
+base recorded under `licenses/distroless/`. Its package payload includes
+base-files, ca-certificates, media-types, netbase, tzdata and tzdata-legacy.
+Their complete image-shipped copyright notices/common licenses and package
+metadata are retained in `licenses/distroless/base-notices/`, alongside exact
+base manifests, configurations and a per-path content/type/link inventory.
+The base's CA bundle is the default runtime trust store. These components retain
+their original grants; they are not relicensed as first-party AGPL code.
+
+Independent release/security and source/license reviews approved the exact
+profile at `594de2b5ee7a274af8be0a28f68d9008a011841b`: the pinned base payload
+and native eleven-module static Go closure. The decision is recorded in
+`licenses/distroless/inventory.json`. Preserve the original grants, recursive
+notices, exact source evidence and Corresponding Source/network offer. This
+scoped decision is not general legal advice, approval of a different base or
+payload, or repository publication authorization.
 
 The native protocol implementation preserves upstream MIT attribution in its
 source header. Original generator origin:

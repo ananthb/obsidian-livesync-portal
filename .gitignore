@@ -1,6 +1,8 @@
 # SPDX-License-Identifier: AGPL-3.0-only
 /config.json
 /data/
+/kodata/
+/dist-arm64/
 /dist/
 /build/
 /secrets/

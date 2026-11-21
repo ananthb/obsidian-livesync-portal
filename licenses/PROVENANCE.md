@@ -1,7 +1,26 @@
 <!-- SPDX-License-Identifier: AGPL-3.0-only -->
 # License/provenance review — 2026-11-21
 
-## Active distribution profile: native Go, static Linux, scratch
+## Active distribution profile: native Go, static Linux, pinned distroless
+
+Independent release/security and source/license reviews approved the exact
+profile at `594de2b5ee7a274af8be0a28f68d9008a011841b`: Go 1.27.4's native
+eleven-module static closure and the amd64/arm64 payload of
+`gcr.io/distroless/static-debian13@sha256:aafe993665bf6200db38a02c11a9351e782a84b6a45e7f33b6695638c88e3931`.
+The decision is recorded in `distroless/inventory.json`. It is scoped approval,
+not general legal advice, clearance for other pins/payloads, or publication
+authorization. Original grants, recursive notices, base/source evidence and
+Corresponding Source/network-offer obligations remain in force.
+
+The immutable index, both architecture manifests/configurations, exact flattened
+file/type/link/ownership inventory and retained package documentation/common
+licenses are under `distroless/`. The base's CA bundle is the active runtime
+trust store. GoReleaser-ko installs recursive legal data under `/var/run/ko`.
+Crane exports the image layers directly, excluding Docker-injected runtime
+metadata. The separate distroless audit checks exact inventoried base contents,
+ko asset paths and narrowly constrained data-parent headers; scratch/archive
+checks remain strict. Final image binaries must be byte-identical to the
+corresponding release archive binaries.
 
 The native codec introduced at `2cadac2` replaces the Deno-compiled setup
 helper. **The old Deno Rust/native binary-closure blocker does not apply when
@@ -34,7 +53,10 @@ modifications and the other first-party code use **AGPL-3.0-only**. htmx remains
 0BSD. The reviewed linked modules/retained inline permissions present no
 identified incompatibility with AGPLv3-only; third-party grants are not replaced.
 
-### CA data and scratch image
+### Historical custom CA data and scratch image
+
+The following evidence remains retained historical source material. It is not
+the current distroless runtime trust store or its active audit profile.
 
 `ca-bundle/provenance.json` records the CA bundle actually extracted from the
 digest-pinned Go builder: Debian `ca-certificates` **20250419~deb12u2**, 148
@@ -57,13 +79,13 @@ scripts: they are retained inside the complete source archive, not installed
 as executable system utilities or linked into the application. GPL-2 text is
 also retained. The aggregate does not relicense the Go binary under GPL-2.
 
-For the reviewed **scratch** payload (one static app, CA data, legal/source
+For that historical **scratch** payload (one static app, CA data, legal/source
 materials, empty writable directories), no Debian glibc, libgcc, shell or
 package-manager binaries are conveyed. Their old final-image source/relinking
-obligations therefore drop out. If a Debian/distroless/library base returns,
-this profile is invalid: inventory the actual OS packages and fulfill their
-source/relinking obligations separately. Build-stage tools are not automatically
-part of the distributed image.
+obligations therefore dropped out. The active distroless profile has its own
+separately inventoried/reviewed base and preserved source obligations described
+above; this historical scratch finding does not clear arbitrary OS additions.
+Build-stage tools are not automatically part of the distributed image.
 
 ### Per-release gates and integration requirements
 
@@ -76,7 +98,8 @@ part of the distributed image.
    Never substitute GitHub's changing default branch. The verifier compares
    tracked archive files byte-for-byte against `git archive <revision>`;
    optional `vendor/` additions must exactly match `go mod vendor` and the
-   three packaged `build-inputs/` files must match the recorded CA/builder data.
+    packaged `build-inputs/manifest.json` must match the exact source commit,
+    Go/GoReleaser/ko versions and pinned base image evidence.
    It also checks VCS revision and clean-state build information in both binaries.
 3. Provide a public version-specific Corresponding Source URL in the release
    and deployment/network UI. Versioned builds should default `SourceURL` to
@@ -86,8 +109,9 @@ part of the distributed image.
    A syntactically valid URL in a local check does
    **not** prove public source is hosted or the network UI displays it. This
    audit does not authorize a push or prove a published source-delivery path.
-4. Verify both flattened final image exports against the scratch allowlist,
-   static binaries, recursive notices and exact CA hash. OCI layer archives
+4. Verify both flattened final image exports with `--image-profile distroless`
+    against the pinned base inventory, static binaries, recursive notices and
+    exact archive binaries. OCI layer archives
    are not flattened exports and must not be passed as though they were.
 
 Commands (Python stdlib plus the installed Go toolchain):
@@ -100,11 +124,11 @@ python3 scripts/license-provenance.py --archive release-amd64.tar.gz --archive r
 python3 scripts/license-provenance.py --release \
   --archive release-amd64.tar.gz --archive release-arm64.tar.gz \
   --source-archive source.tar.gz --revision FULL_COMMIT \
-  --source-url https://github.com/ananthb/obsidian-livesync-portal/tree/FULL_COMMIT
+  --source-url https://github.com/ananthb/obsidian-livesync-portal/releases/download/source-FULL_COMMIT/obsidian-livesync-portal_VERSION_source.tar.gz
 # A canonical /releases/download/vVERSION/..._VERSION_source.tar.gz URL is
 # also accepted when its filename matches the verified source archive.
 # Add --images --image-tar exported-amd64.tar --image-tar exported-arm64.tar
-# to require the full scratch-image checks as well.
+# plus --image-profile distroless for the active pinned image profile.
 ```
 
 The gate is scoped local evidence, not legal advice, exhaustive clearance or
@@ -115,7 +139,7 @@ after packaging both architectures and the matching source archive. Existing
 workflow calls that use bare `--release` before building must be moved/updated
 by the integration owner; this audit does not edit workflows.
 
-Native-profile validation performed locally: both architecture binaries were
+Historical native/scratch validation performed locally: both architecture binaries were
 built with the reviewed toolchain/tags and inspected; legal-only test packages
 containing each real binary and all notices passed, as did two synthetic
 flattened scratch exports containing the exact CA data. These are verifier
@@ -123,7 +147,12 @@ tests, **not Docker-built final images or a production release**. Missing-MIT,
 accidental-helper, dirty-VCS and empty-release checks failed as intended. Exact
 `git archive` source and generated `vendor/` plus CA/build-input source packages
 passed. Actual clean-revision release artifacts, Docker-built images and public
-source/network-UI availability still need end-to-end validation after integration.
+source/network-UI availability still needed end-to-end validation at that stage.
+The active ko/distroless profile subsequently passed actual amd64 and QEMU ARM64
+execution, named-volume/fsGroup-equivalent storage checks, exact image/archive
+audits and Corresponding Source validation in GitHub runs `44943380779` and
+`44943384177` at the reviewed commit. Public release signing/source delivery
+and deployment/network-UI availability remain separate post-authorization checks.
 
 ## Historical Deno/test provenance (not native-Go binary clearance)
 
@@ -269,9 +298,9 @@ audit. This restriction does not apply to the reviewed native-Go-only profile.
   `setup/upstream/LICENSE`, outside the archive/image inclusion globs. It is now
   duplicated verbatim as `licenses/setup-helper.txt`, which those globs include.
 * `.goreleaser.yaml` includes `LICENSE`, `THIRD_PARTY_NOTICES.md`, and
-  `licenses/**`; both Dockerfiles copy the complete `licenses/` tree. Keep that
+  `licenses/**`; ko data includes the complete `licenses/` tree. Keep that
   recursive structure, including evidence and nested crate notices. No app,
-  Dockerfile or workflow was changed by this license review.
+  image recipe or workflow was changed by this license review.
 * Existing `dist/` archives and previously built images predate these additions.
   Rebuild, inspect both architecture archives and final images, and compare all
   legal-file hashes against `licenses/provenance.json`. Checking the source

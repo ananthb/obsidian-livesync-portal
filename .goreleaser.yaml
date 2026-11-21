@@ -1,6 +1,10 @@
 # SPDX-License-Identifier: AGPL-3.0-only
 version: 2
 project_name: obsidian-livesync-portal
+dist: dist
+before:
+  hooks:
+    - python3 -B scripts/prepare-kodata.py
 builds:
   - id: portal
     binary: livesync-portal
@@ -28,8 +32,31 @@ checksum:
 sboms:
   - artifacts: archive
 release:
+  disable: true
   github:
     owner: '{{ .Env.RELEASE_OWNER }}'
     name: '{{ .Env.RELEASE_REPO }}'
 changelog:
   disable: true
+kos:
+  - id: portal
+    build: portal
+    main: .
+    base_image: gcr.io/distroless/static-debian13@sha256:aafe993665bf6200db38a02c11a9351e782a84b6a45e7f33b6695638c88e3931
+    user: '65532:65532'
+    repositories: ['{{ .Env.IMAGE }}']
+    bare: true
+    local_domain: goreleaser.ko.local/obsidian-livesync-portal
+    platforms:
+      - '{{ if .IsSnapshot }}linux/{{ .Env.GOARCH }}{{ else }}linux/amd64{{ end }}'
+      - '{{ if not .IsSnapshot }}linux/arm64{{ end }}'
+    tags: ['{{ .Env.IMAGE_TAG }}']
+    creation_time: '{{ .CommitTimestamp }}'
+    ko_data_creation_time: '{{ .CommitTimestamp }}'
+    sbom: spdx
+    labels:
+      org.opencontainers.image.source: https://github.com/ananthb/obsidian-livesync-portal
+      org.opencontainers.image.revision: '{{ .FullCommit }}'
+      org.opencontainers.image.version: '{{ .Version }}'
+      org.opencontainers.image.licenses: AGPL-3.0-only
+      org.opencontainers.image.documentation: 'https://github.com/ananthb/obsidian-livesync-portal/releases/download/source-{{ .FullCommit }}/obsidian-livesync-portal_{{ .Version }}_source.tar.gz'

@@ -19,14 +19,21 @@ services:
       timeout: 5s
       retries: 3
   portal:
-    build:
-      context: ..
+    image: ${PORTAL_IMAGE:-goreleaser.ko.local/obsidian-livesync-portal:local}
+    pull_policy: never
+    environment:
+      PORTAL_CONFIG: /run/secrets/portal_config
     read_only: true
     cap_drop: [ALL]
     security_opt: ['no-new-privileges:true']
     tmpfs: ['/tmp:rw,noexec,nosuid,size=16m']
     secrets: [portal_config]
-    volumes: [portal_data:/data]
+    volumes: [portal_data:/home/nonroot]
+    healthcheck:
+      test: ['CMD', '/ko-app/obsidian-livesync-portal', 'healthcheck']
+      interval: 30s
+      timeout: 5s
+      retries: 3
     restart: unless-stopped
     depends_on:
       couch: {condition: service_healthy}
