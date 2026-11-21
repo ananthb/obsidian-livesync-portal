@@ -32,6 +32,7 @@ import (
 const setupURIBase = "obsidian://setuplivesync?settings="
 const setupMaxPayload = 64 << 10
 const setupMaxPassword = 4096
+
 // Base64's 4/3 expansion followed by worst-case percent encoding (3x).
 const setupMaxURI = 4 * (setupMaxPayload + 128)
 
