@@ -35,7 +35,10 @@ The immutable distroless static Debian 13 base index, architecture descriptors,
 complete file hashes/types/link targets and retained package notices are in
 `licenses/distroless/`. The base's CA store is intentional; old custom-CA evidence
 remains historical legal data, not a runtime trust override. Independent legal
-review of this new profile is pending and blocks release publication.
+review approved this exact pin/native payload at commit
+`594de2b5ee7a274af8be0a28f68d9008a011841b`; the scoped decision and preserved
+source obligations are recorded in the inventory. Publication still requires
+separate repository authorization.
 
 ## Publication ordering
 

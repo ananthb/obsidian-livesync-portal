@@ -21,7 +21,7 @@ The reviewed binary profile is `CGO_ENABLED=0` static Linux Go with
 `netgo,osusergo` tags. No Deno/V8/Rust runtime, external setup helper, glibc or
 libgcc is linked into it. Artifacts must be checked, not inferred from settings.
 
-## Distroless image profile: independent review pending
+## Distroless image profile: scoped review approved
 
 The current ko image uses the digest-pinned distroless static Debian 13 nonroot
 base recorded under `licenses/distroless/`. Its package payload includes
@@ -32,10 +32,13 @@ base manifests, configurations and a per-path content/type/link inventory.
 The base's CA bundle is the default runtime trust store. These components retain
 their original grants; they are not relicensed as first-party AGPL code.
 
-This new image profile has not yet received independent source/license closure
-approval. Its mechanical inventory is not legal clearance. Release publication
-requires that review to be recorded approved; binary-profile approval alone does
-not authorize the additional base components.
+Independent release/security and source/license reviews approved the exact
+profile at `594de2b5ee7a274af8be0a28f68d9008a011841b`: the pinned base payload
+and native eleven-module static Go closure. The decision is recorded in
+`licenses/distroless/inventory.json`. Preserve the original grants, recursive
+notices, exact source evidence and Corresponding Source/network offer. This
+scoped decision is not general legal advice, approval of a different base or
+payload, or repository publication authorization.
 
 The native protocol implementation preserves upstream MIT attribution in its
 source header. Original generator origin:

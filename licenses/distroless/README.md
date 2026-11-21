@@ -1,8 +1,11 @@
 # Distroless image evidence
 
-The image profile is **pending independent legal review**. Mechanical CI is not
-publication approval. Release publication also requires this review to be recorded
-as approved in `inventory.json`.
+Independent release/security and source/license reviews **approved this exact
+profile** at source commit `594de2b5ee7a274af8be0a28f68d9008a011841b`, including
+the pinned base and native eleven-module static Go closure. The scoped decision
+is recorded in `inventory.json`. It is not general legal advice or approval of
+other pins/payloads. Preserve the original grants, recursive notices and exact
+source obligations. Repository publication authorization remains a separate gate.
 
 Base: `gcr.io/distroless/static-debian13@sha256:aafe993665bf6200db38a02c11a9351e782a84b6a45e7f33b6695638c88e3931`.
 The immutable index and amd64/arm64 manifests/configs are in `evidence/`.
@@ -16,6 +19,8 @@ common-license files. The original image retains those files at their standard
 paths too. Packages are base-files, ca-certificates, media-types, netbase,
 tzdata and tzdata-legacy. Debian package versions and source package names are
 recorded verbatim in `base-notices/var/lib/dpkg/status.d/`.
+The retained status copies are shared package evidence; the immutable per-architecture
+manifests/configurations and filesystem inventories remain authoritative for each image.
 
 Upstream build source: https://github.com/GoogleContainerTools/distroless
 Debian source archive: https://snapshot.debian.org/

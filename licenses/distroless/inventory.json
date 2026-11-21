@@ -19347,6 +19347,12 @@
   },
   "image": "gcr.io/distroless/static-debian13",
   "index": "sha256:aafe993665bf6200db38a02c11a9351e782a84b6a45e7f33b6695638c88e3931",
-  "review_status": "pending independent legal review",
+  "review_status": "approved",
+  "review": {
+    "source_commit": "594de2b5ee7a274af8be0a28f68d9008a011841b",
+    "scope": "Exact pinned distroless static Debian 13 nonroot amd64/arm64 payload and native static Go 1.27.4 eleven-module closure",
+    "result": "Independent release/security and base/source/license reviews approved; no substantive blockers reported",
+    "obligations": "Preserve original component grants, recursive notices, exact source evidence and corresponding-source/network offer; approval does not authorize publication or cover other base pins or payload changes"
+  },
   "upstream": "https://github.com/GoogleContainerTools/distroless"
 }
