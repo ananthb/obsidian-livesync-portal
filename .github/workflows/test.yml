@@ -48,5 +48,11 @@ jobs:
           PORTAL_HOST: portal.example.test
           OIDC_HOST: id.example.test
           COUCH_HOST: couch.example.test
-      - run: docker build -t obsidian-livesync-portal:test .
-      - run: bash scripts/image-smoke.sh obsidian-livesync-portal:test
+      - uses: docker/setup-qemu-action@99012661954931238ded8c8b007157a8430204e1 # v4.4.0
+        with:
+          platforms: arm64
+      - uses: docker/setup-buildx-action@f87e5991a6d7451dcb8d9637bfbc97413f497069 # v4.4.1
+        with:
+          version: v0.38.1
+      - name: Execute both release image architectures and verify legal payloads (no publication)
+        run: bash scripts/validate-images.sh
