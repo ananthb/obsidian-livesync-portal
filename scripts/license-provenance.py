@@ -61,15 +61,28 @@ def verify_binary(data, scope, revision=None):
     return arch
 
 
-def entries(archive, absolute_paths=()):
+def entries(archive, absolute_paths=(), ko_parent_headers=False):
     result = {}
+    raw_names = set()
     for member in archive.getmembers():
+        require(member.name not in raw_names, f"Duplicate archive path: {member.name}")
+        raw_names.add(member.name)
         name = str(PurePosixPath(member.name))
         require((not name.startswith("/") or name in absolute_paths) and
                 ".." not in PurePosixPath(name).parts, f"Unsafe archive path: {member.name!r}")
         if name.startswith("/"):
             name = name[1:]
-        require(name not in result, f"Duplicate archive path: {name}")
+        if name in result:
+            previous = result[name]
+            # Crane preserves ko's absolute parent headers beside base-relative ones.
+            require(ko_parent_headers and name in ("var", "var/run") and
+                    {previous.name, member.name} == {name, "/" + name} and
+                    previous.isdir() and member.isdir() and
+                    all(m.uid == 0 and m.gid == 0 for m in (previous, member)) and
+                    {previous.mode, member.mode} == {0o755, 0o555},
+                    f"Duplicate archive path: {name}")
+            if not member.name.startswith("/"):
+                continue
         result[name] = member
     return result
 
@@ -93,7 +106,7 @@ def verify_distroless(path, scope, legal_files, revision, binary_hashes=None):
             asset = PurePosixPath("/var/run/ko") / name
             absolute.add(str(asset))
             absolute.update(str(p) for p in asset.parents if str(p) != "/")
-        members = entries(archive, absolute)
+        members = entries(archive, absolute, ko_parent_headers=True)
         binary = "ko-app/obsidian-livesync-portal"
         require(binary in members and members[binary].isfile(), "Missing ko application")
         binary_data = archive.extractfile(members[binary]).read()

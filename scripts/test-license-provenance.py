@@ -82,6 +82,27 @@ class ImageMetadataTest(unittest.TestCase):
         with self.assertRaisesRegex(SystemExit, "Duplicate archive path"):
             provenance.entries(archive, {"/var/run/ko/LICENSE"})
 
+    def test_exact_ko_parent_header_pair_only(self):
+        archive = unittest.mock.Mock()
+        base, ko = tarfile.TarInfo("var"), tarfile.TarInfo("/var")
+        base.type = ko.type = tarfile.DIRTYPE
+        base.mode, ko.mode = 0o755, 0o555
+        archive.getmembers.return_value = [base, ko]
+        self.assertEqual(provenance.entries(archive, {"/var"}, True)["var"].mode, 0o555)
+        with self.assertRaisesRegex(SystemExit, "Duplicate archive path"):
+            provenance.entries(archive, {"/var"})
+        archive.getmembers.return_value = [base, ko, ko]
+        with self.assertRaisesRegex(SystemExit, "Duplicate archive path"):
+            provenance.entries(archive, {"/var"}, True)
+        archive.getmembers.return_value = [base, ko]
+        ko.mode = 0o777
+        with self.assertRaisesRegex(SystemExit, "Duplicate archive path"):
+            provenance.entries(archive, {"/var"}, True)
+        ko.mode = 0o555
+        ko.type = tarfile.REGTYPE
+        with self.assertRaisesRegex(SystemExit, "Duplicate archive path"):
+            provenance.entries(archive, {"/var"}, True)
+
     def test_console_is_not_image_payload(self):
         with self.assertRaisesRegex(SystemExit, "Unreviewed distribution"):
             self.verify("etc/mtab", "/proc/mounts", console=b"")
