@@ -15,7 +15,7 @@ spec.loader.exec_module(provenance)
 
 
 class ImageMetadataTest(unittest.TestCase):
-    def verify(self, name, target, kind=tarfile.SYMTYPE, image=True):
+    def verify(self, name, target, kind=tarfile.SYMTYPE, image=True, duplicate=False):
         with tempfile.TemporaryDirectory() as directory:
             path = Path(directory) / "image.tar"
             with tarfile.open(path, "w") as archive:
@@ -32,6 +32,8 @@ class ImageMetadataTest(unittest.TestCase):
                 member.type = kind
                 member.linkname = target
                 archive.addfile(member)
+                if duplicate:
+                    archive.addfile(member)
             with patch.object(provenance, "verify_binary", return_value="amd64"):
                 return provenance.verify_distribution(path, {}, {}, image=image)
 
@@ -41,6 +43,8 @@ class ImageMetadataTest(unittest.TestCase):
     def test_other_links_are_rejected(self):
         for name, target, kind, image in [
             ("etc/mtab", "/etc/passwd", tarfile.SYMTYPE, True),
+            ("etc/mtab", "/proc/../proc/mounts", tarfile.SYMTYPE, True),
+            ("etc/mtab", "../../proc/mounts", tarfile.SYMTYPE, True),
             ("etc/other", "/proc/mounts", tarfile.SYMTYPE, True),
             ("etc/mtab", "/proc/mounts", tarfile.LNKTYPE, True),
             ("etc/mtab", "/proc/mounts", tarfile.SYMTYPE, False),
@@ -48,6 +52,16 @@ class ImageMetadataTest(unittest.TestCase):
             with self.subTest(name=name, target=target, kind=kind, image=image):
                 with self.assertRaisesRegex(SystemExit, "Unreviewed distribution"):
                     self.verify(name, target, kind, image)
+
+    def test_traversal_and_absolute_paths_are_rejected(self):
+        for name in ("../etc/mtab", "etc/../etc/mtab", "/etc/mtab"):
+            with self.subTest(name=name):
+                with self.assertRaisesRegex(SystemExit, "Unsafe archive path"):
+                    self.verify(name, "/proc/mounts")
+
+    def test_duplicate_metadata_is_rejected(self):
+        with self.assertRaisesRegex(SystemExit, "Duplicate archive path"):
+            self.verify("etc/mtab", "/proc/mounts", duplicate=True)
 
 
 if __name__ == "__main__":

@@ -19,6 +19,12 @@ for arch in amd64 arm64; do
   bash scripts/image-smoke.sh "$image" "linux/$arch"
   container=$(docker create --platform "linux/$arch" "$image")
   docker export --output "build/validate-image-$arch.tar" "$container"
+  python3 -c 'import sys, tarfile
+with tarfile.open(sys.argv[1]) as archive:
+    for member in archive:
+        if member.issym() or member.islnk():
+            print(f"Export link evidence: {member.name!r} type={member.type!r} target={member.linkname!r}", flush=True)
+' "build/validate-image-$arch.tar"
   docker rm "$container"
   container=''
 done
