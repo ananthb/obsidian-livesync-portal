@@ -13,12 +13,23 @@ import (
 	"testing"
 )
 
-func TestReleaseOrderingAndFailClosedWithMockedCLIs(t *testing.T) {
+func TestReleaseOrderingAndRESTContract(t *testing.T) {
 	if _, err := exec.LookPath("jq"); err != nil {
+		if os.Getenv("CI") != "" {
+			t.Fatal("jq required for release REST contract tests")
+		}
 		t.Skip("jq required for release script simulations")
 	}
-	for _, scenario := range []string{"success", "retry-draft", "retry-source", "smoke-arm64", "upload", "promotion", "finalized", "moved-tag", "metadata", "signature", "legal", "source-legal", "image-legal", "source-public", "source-public-bytes", "source-public-signature", "source-signature", "source-late", "source-mismatch"} {
+	realGH, err := exec.LookPath("gh")
+	if err != nil {
+		if os.Getenv("CI") != "" {
+			t.Fatal("real gh required for release REST contract tests")
+		}
+		t.Skip("real gh required for release REST contract tests")
+	}
+	for _, scenario := range []string{"success", "annotated-tag", "retry-draft", "retry-source", "retry-source-bundle", "retry-partial", "new-draft-invisible", "smoke-arm64", "upload", "partial-upload", "promotion", "finalized", "retagged-draft", "moved-tag", "metadata", "signature", "legal", "source-legal", "image-legal", "source-public", "source-public-bytes", "source-public-signature", "source-signature", "source-late", "source-mismatch", "update-missing-tag", "update-mutated-tag", "update-wrong-id", "update-wrong-target", "update-wrong-body", "update-wrong-draft", "persisted-wrong-tag", "upload-wrong-name", "upload-wrong-size", "upload-corrupt-bytes", "final-patch-failure", "asset-mismatch"} {
 		t.Run(scenario, func(t *testing.T) {
+			t.Parallel()
 			root := t.TempDir()
 			write := func(name string, b []byte, mode os.FileMode) {
 				t.Helper()
@@ -30,7 +41,7 @@ func TestReleaseOrderingAndFailClosedWithMockedCLIs(t *testing.T) {
 					t.Fatal(err)
 				}
 			}
-			for _, name := range []string{"release-common.sh", "release-images.sh", "release-finalize.sh", "publish-source.sh", "image-smoke.sh"} {
+			for _, name := range []string{"release-api.sh", "release-common.sh", "release-images.sh", "release-finalize.sh", "publish-source.sh", "image-smoke.sh"} {
 				b, err := os.ReadFile("scripts/" + name)
 				if err != nil {
 					t.Fatal(err)
@@ -68,16 +79,32 @@ func TestReleaseOrderingAndFailClosedWithMockedCLIs(t *testing.T) {
 			write("dist/obsidian-livesync-portal_1.2.3_source.tar.gz", source, 0600)
 			fmt.Fprintf(&checksums, "%x  obsidian-livesync-portal_1.2.3_source.tar.gz\n", sha256.Sum256(source))
 			write("dist/checksums.txt", []byte(checksums.String()), 0600)
-			for _, name := range []string{"gh", "docker", "cosign", "go", "python3", "curl", "goreleaser", "crane"} {
+			for _, name := range []string{"docker", "cosign", "go", "python3", "curl", "goreleaser", "crane"} {
 				write("bin/"+name, []byte(releaseMockCLI), 0700)
 			}
+			server := releaseAPIFixture(t, root, scenario)
+			write("bin/gh", []byte(`#!/usr/bin/env bash
+set -euo pipefail
+printf 'gh %s\n' "$*" >> "$TEST_ROOT/trace"
+[[ "$1" == api ]] || { echo 'Tag-based release CLI forbidden' >&2; exit 1; }
+shift
+args=()
+for arg in "$@"; do
+  case "$arg" in
+    repos/*) arg="$API_FIXTURE/$arg";;
+    https://uploads.github.com/*) arg="$API_FIXTURE/${arg#https://uploads.github.com/}";;
+  esac
+  args+=("$arg")
+done
+exec "$REAL_GH" api "${args[@]}"
+`), 0700)
 			if scenario == "retry-draft" {
 				write("state", []byte("draft"), 0600)
 			}
 			if scenario == "finalized" {
 				write("state", []byte("final"), 0600)
 			}
-			if scenario == "retry-source" || scenario == "source-mismatch" {
+			if scenario == "retry-source" || scenario == "retry-source-bundle" || scenario == "source-mismatch" {
 				write("state-source", []byte("final"), 0600)
 				old := source
 				if scenario == "source-mismatch" {
@@ -85,20 +112,48 @@ func TestReleaseOrderingAndFailClosedWithMockedCLIs(t *testing.T) {
 				}
 				write("source-published/obsidian-livesync-portal_1.2.3_source.tar.gz", old, 0600)
 				write("source-published/obsidian-livesync-portal_1.2.3_source.tar.gz.sigstore.json", []byte("dummy\n"), 0600)
+				if scenario == "retry-source-bundle" {
+					write("source-published/obsidian-livesync-portal_1.2.3_source.tar.gz.sigstore.json", []byte("previous valid signature\n"), 0600)
+				}
 			}
 			cmd := exec.Command("bash", "-c", "bash scripts/release-images.sh && bash scripts/release-finalize.sh")
 			cmd.Dir = root
-			cmd.Env = append(os.Environ(), "PATH="+filepath.Join(root, "bin")+":"+os.Getenv("PATH"), "GITHUB_REPOSITORY=test/portal", "GITHUB_SHA="+strings.Repeat("a", 40), "GITHUB_REF_NAME=v1.2.3", "GITHUB_RUN_ID=1", "GITHUB_RUN_ATTEMPT=1", "TEST_ROOT="+root, "TEST_CASE="+scenario)
+			cmd.Env = append(os.Environ(), "PATH="+filepath.Join(root, "bin")+":"+os.Getenv("PATH"), "GITHUB_REPOSITORY=test/portal", "GITHUB_SHA="+strings.Repeat("a", 40), "GITHUB_REF_NAME=v1.2.3", "GITHUB_RUN_ID=1", "GITHUB_RUN_ATTEMPT=1", "TEST_ROOT="+root, "TEST_CASE="+scenario, "API_FIXTURE="+server.URL, "REAL_GH="+realGH, "GH_TOKEN=fixture-token", "GH_DEBUG=")
 			out, err := cmd.CombinedOutput()
+			if scenario == "retry-partial" {
+				state, _ := os.ReadFile(filepath.Join(root, "state"))
+				if err == nil || string(state) != "draft" {
+					t.Fatalf("partial upload must fail and remain draft: %v\n%s", err, out)
+				}
+				retry := exec.Command("bash", "scripts/release-finalize.sh")
+				retry.Dir, retry.Env = root, cmd.Env
+				out, err = retry.CombinedOutput()
+			}
 			traceBytes, _ := os.ReadFile(filepath.Join(root, "trace"))
 			trace := string(traceBytes)
-			wantSuccess := scenario == "success" || scenario == "retry-draft" || scenario == "retry-source"
+			wantSuccess := scenario == "success" || scenario == "annotated-tag" || scenario == "retry-draft" || scenario == "retry-source" || scenario == "retry-source-bundle" || scenario == "retry-partial" || scenario == "new-draft-invisible"
 			if (err == nil) != wantSuccess {
 				t.Fatalf("unexpected result %v\n%s\n%s", err, out, trace)
 			}
-			final := strings.Contains(trace, "repos/test/portal/releases/1 -F draft=false")
-			if final != wantSuccess {
+			if !wantSuccess && scenario != "finalized" {
+				state, _ := os.ReadFile(filepath.Join(root, "state"))
+				if string(state) == "final" {
+					t.Fatal("failure published an application release")
+				}
+			}
+			final := false
+			for _, line := range strings.Split(trace, "\n") {
+				if strings.Contains(line, "PATCH repos/test/portal/releases/1 ") && strings.Contains(line, "-F draft=false") {
+					final = true
+				}
+			}
+			if final != (wantSuccess || scenario == "final-patch-failure") {
 				t.Fatalf("incorrect finalization\n%s", trace)
+			}
+			if strings.HasPrefix(scenario, "update-") || scenario == "persisted-wrong-tag" {
+				if strings.Contains(trace, "POST https://uploads.github.com/repos/test/portal/releases/1/") {
+					t.Fatal("invalid release update allowed asset upload")
+				}
 			}
 			firstPush := -1
 			offset := 0
@@ -125,7 +180,7 @@ func TestReleaseOrderingAndFailClosedWithMockedCLIs(t *testing.T) {
 				}
 				armSmoke := strings.Index(trace, "docker run --platform linux/arm64")
 				sign := strings.Index(trace, "cosign sign --yes")
-				draft := strings.Index(trace, "gh release create v1.2.3")
+				draft := strings.Index(trace, "gh api --method POST repos/test/portal/releases -f tag_name=v1.2.3")
 				if armSmoke < 0 || sign < armSmoke || draft >= 0 && draft < sign {
 					t.Fatalf("unsafe release order\n%s", trace)
 				}
@@ -139,8 +194,8 @@ func TestReleaseOrderingAndFailClosedWithMockedCLIs(t *testing.T) {
 				if publicSource < 0 || draft >= 0 && publicSource > draft {
 					t.Fatal("binary draft created before public source verification")
 				}
-				if scenario == "retry-draft" && (draft >= 0 || !strings.Contains(trace, "--method DELETE")) {
-					t.Fatal("draft retry did not replace old assets")
+				if scenario == "retry-draft" && (draft >= 0 || strings.Contains(trace, "--method DELETE")) {
+					t.Fatal("draft retry created a release or deleted immutable assets")
 				}
 				if scenario == "retry-source" && strings.Contains(trace, "gh release upload source-") {
 					t.Fatal("immutable source assets were overwritten")
@@ -220,33 +275,6 @@ docker)
   if [[ "$1 $2" == 'image inspect' ]]; then printf '65532:65532\n'; exit 0; fi
   if [[ "$1 $2" == 'volume create' ]]; then printf 'test-volume\n'; exit 0; fi
   if [[ "$1" == run && "$*" == *linux/arm64* && "$TEST_CASE" == smoke-arm64 ]]; then exit 1; fi
-  exit 0;;
-gh)
-  if [[ "$1" == api ]]; then
-    if [[ "$*" == *git/ref/tags* ]]; then
-      sha=$GITHUB_SHA; [[ "$TEST_CASE" != moved-tag ]] || sha=$(printf '%040d' 0 | tr 0 b)
-      printf '{"object":{"type":"commit","sha":"%s"}}\n' "$sha"
-    elif [[ "$*" == *'releases?per_page'* ]]; then
-      if [[ "$*" == *env.SOURCE_RELEASE_TAG* ]]; then
-        if [[ -f "$TEST_ROOT/state-source" ]]; then state=$(cat "$TEST_ROOT/state-source"); if [[ "$state" == final ]]; then printf '{"id":2,"draft":false}\n'; else printf '{"id":2,"draft":true}\n'; fi; fi
-      elif [[ -f "$TEST_ROOT/state" ]]; then state=$(cat "$TEST_ROOT/state"); if [[ "$state" == final ]]; then printf '{"id":1,"draft":false}\n'; else printf '{"id":1,"draft":true}\n'; fi; fi
-    elif [[ "$*" == *'/releases/1/assets'* ]]; then printf '17\n'
-    elif [[ "$*" == *'/releases/2/assets'* ]]; then
-      if [[ -n "${SOURCE_ASSET_NAME:-}" && -f "$TEST_ROOT/source-published/$SOURCE_ASSET_NAME" ]]; then printf '27\n'; fi
-    elif [[ "$*" == *'-F draft=false'* ]]; then
-      if [[ "$*" == *'/releases/2 '* ]]; then printf final > "$TEST_ROOT/state-source"; else printf final > "$TEST_ROOT/state"; fi
-    fi
-  elif [[ "$1 $2" == 'release create' ]]; then
-    if [[ "$3" == source-* ]]; then printf draft > "$TEST_ROOT/state-source"; else printf draft > "$TEST_ROOT/state"; fi
-  elif [[ "$1 $2" == 'release upload' ]]; then
-    [[ "$TEST_CASE" != upload ]] || exit 1
-    dir="$TEST_ROOT/published"; if [[ "$3" == source-* ]]; then dir="$TEST_ROOT/source-published"; fi
-    mkdir -p "$dir"
-    for item in "$@"; do [[ "$item" != dist/* ]] || cp "$item" "$dir/"; done
-  elif [[ "$1 $2" == 'release download' ]]; then
-    dir="$TEST_ROOT/published"; if [[ "$3" == source-* ]]; then dir="$TEST_ROOT/source-published"; fi
-    for ((i=1;i<=$#;i++)); do if [[ "${!i}" == --dir ]]; then j=$((i+1)); cp "$dir/"* "${!j}/"; fi; done
-  fi
   exit 0;;
 esac
 exit 1

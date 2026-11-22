@@ -25,31 +25,28 @@ done
 bash scripts/publish-source.sh
 
 id=$(draft_id)
+body="Built from commit $GITHUB_SHA. Corresponding Source: $source_url . Verify the signed checksums and immutable image digest."
 if [[ -z "$id" ]]; then
-  gh release create "$tag" --repo "$GITHUB_REPOSITORY" --draft --target "$GITHUB_SHA" --title "$tag" --notes "Built from commit $GITHUB_SHA. Corresponding Source: $source_url . Verify the signed checksums and immutable image digest."
-  id=$(draft_id)
+  metadata=$(create_release "$tag" "$tag" "$body")
+  id=$(jq -er '.id' <<< "$metadata")
 fi
 [[ "$id" =~ ^[0-9]+$ ]]
-# A failed attempt may leave a draft; replace its assets, never a finalized release.
-draft_id >/dev/null
-gh api --method PATCH "repos/$GITHUB_REPOSITORY/releases/$id" -F draft=true \
-  -f "target_commitish=$GITHUB_SHA" -f "name=$tag" \
-  -f "body=Built from commit $GITHUB_SHA. Corresponding Source: $source_url . Verify the signed checksums and immutable image digest."
-old_assets=$(gh api --paginate "repos/$GITHUB_REPOSITORY/releases/$id/assets" --jq '.[].id')
-while IFS= read -r asset; do
-  [[ -z "$asset" ]] || gh api --method DELETE "repos/$GITHUB_REPOSITORY/releases/assets/$asset"
-done <<< "$old_assets"
+metadata=$(update_release "$id" "$tag" true "$tag" "$body")
 mapfile -t files < <(awk '{print "dist/" $2}' dist/checksums.txt)
-gh release upload "$tag" --repo "$GITHUB_REPOSITORY" "${files[@]}" \
-  dist/checksums.txt dist/checksums.txt.sigstore.json dist/image-digest.txt dist/image-digest.txt.sigstore.json
-gh release upload "$tag" --repo "$GITHUB_REPOSITORY" "dist/obsidian-livesync-portal_${tag#v}_source.tar.gz.sigstore.json"
 download=$(mktemp -d)
 trap 'rm -f "$download"/*; rmdir "$download"' EXIT
-gh release download "$tag" --repo "$GITHUB_REPOSITORY" --dir "$download"
+for file in "${files[@]}" dist/checksums.txt dist/checksums.txt.sigstore.json \
+  dist/image-digest.txt dist/image-digest.txt.sigstore.json "dist/obsidian-livesync-portal_${tag#v}_source.tar.gz.sigstore.json"; do
+  # Recheck identity/state before every upload, including on partial retries.
+  metadata=$(get_release "$id" "$tag" true "$tag" "$body")
+  release_asset "$metadata" "$file" "$download"
+done
 (cd "$download" && verify_assets)
+verify_release_asset_set "$id" "${files[@]}" dist/checksums.txt dist/checksums.txt.sigstore.json \
+  dist/image-digest.txt dist/image-digest.txt.sigstore.json "dist/obsidian-livesync-portal_${tag#v}_source.tar.gz.sigstore.json"
 guard_release
 crane copy "$image@$digest" "$image:$tag"
 [[ "$(crane digest "$image:$tag")" == "$digest" ]]
 guard_release
 verify_public_source
-gh api --method PATCH "repos/$GITHUB_REPOSITORY/releases/$id" -F draft=false
+update_release "$id" "$tag" false "$tag" "$body" true >/dev/null
