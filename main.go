@@ -186,7 +186,9 @@ func (a *app) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Cache-Control", "no-store")
 	w.Header().Set("Pragma", "no-cache")
 	w.Header().Set("X-Content-Type-Options", "nosniff")
-	w.Header().Set("Referrer-Policy", "no-referrer")
+	// Native form POSTs need a same-origin referrer policy to retain their Origin
+	// header in Chromium. External destinations still receive no referrer.
+	w.Header().Set("Referrer-Policy", "same-origin")
 	w.Header().Set("Content-Security-Policy", "default-src 'none'; script-src 'self'; style-src 'self'; connect-src 'self'; form-action 'self'; base-uri 'none'; frame-ancestors 'none'")
 	if r.URL.Path == "/healthz" && r.Method == "GET" {
 		w.WriteHeader(200)
@@ -287,8 +289,16 @@ func (a *app) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		Base                string
 		SourceURL           string
 		Retry               bool
+		VaultName           string
 	}{Person: p, CSRF: s.CSRF, Base: r.URL.Path, SourceURL: a.Config.SourceURL}
 	if action == "setup" {
+		if vaults, err := a.Manager.view(ctx, p); err == nil {
+			for _, v := range vaults {
+				if v.ID == r.PostForm.Get("id") {
+					data.VaultName = v.Name
+				}
+			}
+		}
 		cred, err := a.Manager.setup(ctx, p, r.PostForm.Get("id"))
 		if err != nil {
 			data.Error = err.Error()
@@ -354,8 +364,9 @@ func (a *app) requestError(w http.ResponseWriter, r *http.Request, message strin
 		w.Header().Set("Content-Type", "text/html; charset=utf-8")
 		w.WriteHeader(status)
 		_ = a.Templates.ExecuteTemplate(w, "setup", struct {
-			Error string
-			Setup *setupResult
+			Error     string
+			Setup     *setupResult
+			VaultName string
 		}{Error: message})
 		return
 	}

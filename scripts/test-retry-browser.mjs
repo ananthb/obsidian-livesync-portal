@@ -17,7 +17,8 @@ try {
   await page.waitForTimeout(200);
   assert.equal(posts.length,5);
  } else {
-  await page.waitForFunction(()=>!document.querySelector('[data-retry]') && document.querySelector('.vault'));
+  try { await page.waitForFunction(()=>!document.querySelector('[data-retry]') && document.querySelector('.vault')); }
+  catch(error) { console.log('Requests:',posts.map(post=>new URLSearchParams(post).get('action')), 'Page:',await page.locator('#content').innerText()); throw error; }
   assert.equal(await page.locator('.vault').count(),1);
   assert.match(await page.locator('.vault h3').textContent(),/Default/);
   assert.equal(posts.length,process.argv[3]==='bootstrap'?2:1);

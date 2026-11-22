@@ -103,6 +103,26 @@ func TestAutomaticReconcilePreservesIntent(t *testing.T) {
 	}
 }
 
+func TestReconcileNeverResurrectsInvalidDefault(t *testing.T) {
+	m, r, d, _ := fixture(t)
+	ctx := context.Background()
+	_, _ = m.run(ctx, "alice", "list", "", "")
+	c, n, err := r.Load(ctx, "alice")
+	if err != nil {
+		t.Fatal(err)
+	}
+	v := c.Vaults["default"]
+	v.State = "deleted"
+	c.Vaults["default"] = v
+	if err = r.Save(ctx, "alice", n, c); err != nil {
+		t.Fatal(err)
+	}
+	before := len(d.calls)
+	if _, err = m.run(ctx, "alice", "list", "", ""); err == nil || len(d.calls) != before {
+		t.Fatal("invalid default resurrected", err)
+	}
+}
+
 // Opt-in real-browser coverage. All identities, catalogs and credentials are fixtures.
 func TestBrowserUI(t *testing.T) {
 	if os.Getenv("PORTAL_BROWSER") != "1" {
@@ -110,10 +130,17 @@ func TestBrowserUI(t *testing.T) {
 	}
 	a := testApp(t)
 	_, _ = a.Manager.run(context.Background(), "alice", "list", "", "")
-	server := httptest.NewTLSServer(a)
-	defer server.Close()
-	a.Config.URL = server.URL
+	fixtureGenerator := a.Generate
+	a.Generate = func(ctx context.Context, c credentials) (setupResult, error) {
+		result, err := fixtureGenerator(ctx, c)
+		result.URI += strings.Repeat("dummy-encoded-payload", 300)
+		return result, err
+	}
+	server := httptest.NewUnstartedServer(a)
+	a.Config.URL = "https://" + server.Listener.Addr().String()
 	a.Config.SourceURL = releaseSourceURL("1.0.0", strings.Repeat("a", 40))
+	server.StartTLS()
+	defer server.Close()
 	cmd := exec.Command("node", "scripts/test-browser.mjs", server.URL)
 	cmd.Env = os.Environ()
 	out, err := cmd.CombinedOutput()
@@ -151,9 +178,10 @@ func TestBrowserAutomaticRetries(t *testing.T) {
 					d.fail = 100
 				}
 			}
-			server := httptest.NewTLSServer(a)
+			server := httptest.NewUnstartedServer(a)
+			a.Config.URL = "https://" + server.Listener.Addr().String()
+			server.StartTLS()
 			defer server.Close()
-			a.Config.URL = server.URL
 			cmd := exec.Command("node", "scripts/test-retry-browser.mjs", server.URL, mode)
 			out, err := cmd.CombinedOutput()
 			if err != nil {

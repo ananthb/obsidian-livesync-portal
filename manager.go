@@ -13,6 +13,8 @@ import (
 	"sort"
 	"strings"
 	"sync"
+	"unicode"
+	"unicode/utf8"
 )
 
 type credentials struct {
@@ -128,6 +130,11 @@ func (m *manager) load(ctx context.Context, p string) (catalog, int, credentials
 	}
 	for id, v := range c.Vaults {
 		expected := cred.Database + "-" + id
+		// Keep existing database identities untouched. New databases use a bounded,
+		// validated owner prefix and random immutable ID, never a display label.
+		if id != "default" && v.Database == p+"-"+id {
+			expected = v.Database
+		}
 		if id == "default" {
 			expected = cred.Database
 			if v.State == "deleting" || v.State == "deleted" {
@@ -181,20 +188,21 @@ func (m *manager) run(ctx context.Context, p, action, id, name string) ([]vault,
 			dirty = true
 		}
 		if action == "create" {
-			name = strings.TrimSpace(name)
-			if len(name) < 1 || len(name) > 80 {
-				return nil, errors.New("name must be 1–80 bytes")
+			name, err = qualifiedVaultName(p, name)
+			if err != nil {
+				return nil, err
 			}
 			if len(c.Vaults) >= 200 {
 				return nil, errors.New("vault limit reached (including tombstones)")
 			}
 			for _, v := range c.Vaults {
-				if v.Name == name && v.State != "deleted" {
+				existing, _ := qualifiedVaultName(p, v.Name)
+				if (strings.EqualFold(existing, name) || strings.EqualFold(v.Name, name)) && v.State != "deleted" {
 					return nil, errors.New("name already used")
 				}
 			}
 			id = secret(16)
-			c.Vaults[id] = vault{ID: id, Name: name, Database: cred.Database + "-" + id, State: "creating", Passphrase: secret(32), Recovery: "sls-id-v1:" + secret(32)}
+			c.Vaults[id] = vault{ID: id, Name: name, Database: p + "-" + id, State: "creating", Passphrase: secret(32), Recovery: "sls-id-v1:" + secret(32)}
 			dirty = true
 		}
 		if action == "delete" {
@@ -251,6 +259,27 @@ func (m *manager) run(ctx context.Context, p, action, id, name string) ([]vault,
 		return sortedVaults(c), nil
 	}
 	return nil, errConflict
+}
+
+func qualifiedVaultName(owner, label string) (string, error) {
+	if !safePerson.MatchString(owner) || !utf8.ValidString(label) {
+		return "", errors.New("invalid vault name")
+	}
+	prefix := owner + "-"
+	label = strings.TrimSpace(label)
+	if len(label) >= len(prefix) && strings.EqualFold(label[:len(prefix)], prefix) {
+		label = strings.TrimSpace(label[len(prefix):])
+	}
+	name := prefix + label
+	if label == "" || len(name) > 80 {
+		return "", errors.New("vault name must include a label and be at most 80 bytes including the username prefix")
+	}
+	for _, r := range label {
+		if unicode.IsControl(r) || strings.ContainsRune("/\\", r) {
+			return "", errors.New("vault name cannot contain control characters or slashes")
+		}
+	}
+	return name, nil
 }
 
 func (m *manager) setup(ctx context.Context, p, id string) (credentials, error) {

@@ -24,7 +24,18 @@ try {
   await page.waitForSelector('dialog[open]');
   assert.equal(await page.locator('#content').innerHTML(),mainBefore);
   assert.equal(await page.locator('#setup-dialog input[type=password]').count(),3);
+  assert.equal(await page.locator('#setup-title').textContent(),'Set up Default');
   assert.equal(await page.locator('#setup-dialog [data-copy]').count(),3);
+  for(const id of ['setup-uri','setup-password','setup-recovery']) {
+    await page.locator(`[data-copy="${id}"]`).click();
+    await page.getByRole('status').filter({hasText:'Copied.'}).waitFor();
+    assert.equal(await page.evaluate(() => navigator.clipboard.readText()),await page.locator(`#${id}`).inputValue());
+    assert.equal(await page.locator(`#${id}`).getAttribute('type'),'password');
+    await page.locator(`[data-reveal="${id}"]`).click();
+    assert.equal(await page.locator(`#${id}`).getAttribute('type'),'text');
+    await page.locator(`[data-reveal="${id}"]`).click();
+    assert.equal(await page.locator(`#${id}`).getAttribute('type'),'password');
+  }
   await page.locator('[data-copy="setup-password"]').click();
   await page.getByRole('status').filter({hasText:'Copied.'}).waitFor();
   assert.equal(await page.evaluate(() => navigator.clipboard.readText()),'dummy-uri-key');
@@ -34,6 +45,10 @@ try {
   assert.equal(await page.locator('[data-reveal="setup-uri"]').getAttribute('aria-pressed'),'true');
   await page.locator('[data-reveal="setup-uri"]').click();
   assert.equal(await page.locator('#setup-uri').getAttribute('type'),'password');
+  for(let i=0;i<12;i++) {
+    await page.keyboard.press('Tab');
+    assert.equal(await page.evaluate(()=>document.querySelector('dialog').contains(document.activeElement)),true, await page.evaluate(()=>`Tab ${document.activeElement.outerHTML.slice(0,180)}; open=${document.querySelector('dialog').open}`));
+  }
   // Native modal traps focus and restores it on Escape.
   await page.keyboard.press('Escape');
   await page.waitForSelector('dialog:not([open])', {state:'attached'});
@@ -61,6 +76,20 @@ try {
   await page.keyboard.press('Escape');
   assert.equal(navigations,0);
   await page.goto(process.argv[2]);
+  await page.locator('#vault-name').fill('alice-work');
+  assert.equal(await page.locator('#vault-name').inputValue(),'work');
+  await page.getByRole('button',{name:'Create vault'}).click();
+  await page.getByRole('heading',{name:'alice-work',exact:true}).waitFor();
+  const workOpen=page.locator('.vault').filter({has:page.getByRole('heading',{name:'alice-work',exact:true})}).getByRole('button',{name:'Show setup URI'});
+  await workOpen.click(); await page.waitForSelector('dialog[open]');
+  assert.equal(await page.locator('#setup-title').textContent(),'Set up alice-work');
+  await page.keyboard.press('Escape');
+  await page.waitForSelector('#setup-content input',{state:'detached'});
+  // A failed transport also produces a local, nonsecret error dialog.
+  await page.route('**/',route=>route.request().method()==='POST'?route.abort():route.continue());
+  await workOpen.click(); await page.waitForSelector('dialog[open]');
+  await page.getByRole('alert').filter({hasText:'Could not load setup'}).waitFor();
+  await page.keyboard.press('Escape'); await page.unroute('**/');
   await page.screenshot({path:'/tmp/opencode/olp-ui-desktop.png',fullPage:true});
   await page.setViewportSize({width:375,height:812});
   assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth <= innerWidth),true);
@@ -68,5 +97,16 @@ try {
   assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth <= innerWidth),true);
   await page.screenshot({path:'/tmp/opencode/olp-ui-mobile-dialog.png',fullPage:true});
   assert.deepEqual(errors,[]);
+  const noJS=await browser.newContext({ignoreHTTPSErrors:true,javaScriptEnabled:false});
+  await noJS.addCookies([{name:'__Host-obsidian',value:'valid',url:process.argv[2],secure:true,httpOnly:true}]);
+  const fallback=await noJS.newPage();
+  await fallback.goto(process.argv[2]);
+  await fallback.getByRole('button',{name:'Show setup URI'}).first().click();
+  try { await fallback.getByRole('heading',{name:/Set up /}).waitFor(); }
+  catch(error) { console.log('No-JS response:',await fallback.locator('body').innerText()); throw error; }
+  assert.equal(await fallback.locator('footer a').textContent(),'Source code');
+  await fallback.getByRole('link',{name:'Back to vaults'}).click();
+  assert.equal(await fallback.locator('h1').textContent(),'My vaults');
+  await noJS.close();
   console.log('Real Chromium: modal open/close/Escape/focus, hidden/copy/reveal, clipboard failure, setup/CSRF errors, unchanged page, footer and mobile overflow passed.');
 } finally { await browser.close(); }

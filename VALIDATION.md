@@ -26,6 +26,18 @@ generated. Ordinary GETs stay read-only, and no retry worker survives page close
 With JavaScript disabled, ordinary forms still navigate; automatic retries require
 signing in again. Setup responses and secrets are never stored in browser history.
 
+New non-default display names are `username-label`, canonicalized on the server:
+trim surrounding whitespace, strip one existing case-insensitive username prefix,
+retain Unicode spelling, and reject empty labels, invalid UTF-8, control characters,
+slashes and names over 80 UTF-8 bytes including prefix. Duplicate names compare
+with Go Unicode case folding after the same qualification, including legacy names.
+Active/creating/deleting names remain reserved; deleted tombstones may be reused
+with a new random ID. No Unicode normalization or renaming of old metadata occurs.
+New CouchDB names are `username-<32 random hex digits>` (at most 96 bytes), not
+derived from display labels. Old database names, default names/databases and
+encryption/recovery settings are unchanged. Display prefixes alone are not claimed
+to be globally collision-proof; immutable random database IDs preserve uniqueness.
+
 Status on 2026-11-21. This candidate is not a published release.
 
 The table below records **historical pre-native extraction checks**, not proof
