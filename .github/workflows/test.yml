@@ -25,7 +25,15 @@ jobs:
       - run: go test -race ./... && go vet ./...
         env:
           SETUP_INTEROP_REQUIRED: '1'
-      - uses: goreleaser/goreleaser-action@a4f02ab5355a589de60d917a659ce617ed19b3de # v7.3.0
+      # Exercise the release packaging -> install-only -> shell sequence without publishing.
+      - name: Package snapshot with the pinned GoReleaser action (no publication)
+        uses: goreleaser/goreleaser-action@a4f02ab5355a589de60d917a659ce617ed19b3de # v7.3.0
+        with:
+          distribution: goreleaser
+          version: v2.20.3
+          args: release --snapshot --clean --skip=publish,ko,sign,sbom
+      - name: Expose pinned GoReleaser to subsequent shells
+        uses: goreleaser/goreleaser-action@a4f02ab5355a589de60d917a659ce617ed19b3de # v7.3.0
         with:
           distribution: goreleaser
           version: v2.20.3
@@ -34,7 +42,8 @@ jobs:
         run: |
           GOBIN="$RUNNER_TEMP/tools" go install github.com/google/go-containerregistry/cmd/crane@v0.22.1
           echo "$RUNNER_TEMP/tools" >> "$GITHUB_PATH"
-      - run: goreleaser check
+      - name: Verify packaged GoReleaser is available to image shell
+        run: bash scripts/check-goreleaser.sh
       - uses: docker/setup-qemu-action@99012661954931238ded8c8b007157a8430204e1 # v4.4.0
         with:
           platforms: arm64
