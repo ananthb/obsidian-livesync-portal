@@ -4,6 +4,7 @@
   let opener;
   let attempts = 0;
   let timer;
+  let requests = 0;
   const ready = new WeakSet();
   const delays = [2000, 5000, 15000, 30000, 60000];
   function update() {
@@ -11,6 +12,7 @@
     clearTimeout(timer);
     const form = document.querySelector('[data-retry]');
     if (!form) { attempts = 0; return; }
+    if (requests) return;
     // Never submit a native navigation while htmx is still initializing a form.
     if (!ready.has(form)) return;
     if (attempts >= delays.length) {
@@ -38,7 +40,8 @@
   // htmx 4 uses colon-separated lifecycle events. Keep enhancement errors local.
   document.addEventListener('htmx:before:request', event => {
     const form = event.detail.ctx.sourceElement;
-    if (form.matches('[data-retry]')) clearTimeout(timer);
+    requests++;
+    clearTimeout(timer);
     form.setAttribute('aria-busy', 'true');
     for (const button of form.querySelectorAll('button')) button.disabled = true;
   });
@@ -47,8 +50,10 @@
     const form = ctx.sourceElement;
     form.removeAttribute('aria-busy');
     for (const button of form.querySelectorAll('button')) button.disabled = false;
-    // A network failure does not swap a response, but still needs bounded retries.
-    if (form.matches('[data-retry]') && !ctx.response) update();
+    // htmx 4 awaits the swap before finally:request. Resume only after all
+    // foreground requests finish, including failures with no response to swap.
+    requests = Math.max(0, requests - 1);
+    update();
     if (form.matches('.setup-form') && !ctx.response) {
       const heading = document.createElement('h2');
       heading.id = 'setup-title'; heading.textContent = 'Set up LiveSync';
