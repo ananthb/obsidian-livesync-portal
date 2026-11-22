@@ -15,32 +15,28 @@ identity="https://github.com/$GITHUB_REPOSITORY/.github/workflows/release.yml@re
 issuer=https://token.actions.githubusercontent.com
 cosign verify-blob --bundle "dist/$bundle_name" --certificate-identity "$identity" --certificate-oidc-issuer "$issuer" "dist/$source_name"
 source_metadata() {
-  gh api --paginate "repos/$GITHUB_REPOSITORY/releases?per_page=100" --jq '.[] | select(.tag_name == env.SOURCE_RELEASE_TAG) | {id, draft}'
+  gh api --paginate "repos/$GITHUB_REPOSITORY/releases?per_page=100" --jq '.[] | select(.tag_name == env.SOURCE_RELEASE_TAG or (.draft and .name == ("Corresponding Source " + env.GITHUB_SHA))) | {id, draft}'
 }
 metadata=$(source_metadata)
+title="Corresponding Source $GITHUB_SHA"
+body="Exact build source for $GITHUB_SHA. No application binaries are published in this source-only release."
 if [[ -z "$metadata" ]]; then
-  gh release create "$SOURCE_RELEASE_TAG" --repo "$GITHUB_REPOSITORY" --draft --target "$GITHUB_SHA" \
-    --title "Corresponding Source $GITHUB_SHA" --notes "Exact build source for $GITHUB_SHA. No application binaries are published in this source-only release." --latest=false
-  metadata=$(source_metadata)
+  metadata=$(create_release "$SOURCE_RELEASE_TAG" "$title" "$body")
 fi
 jq -e -s 'length == 1' <<< "$metadata" >/dev/null
 id=$(jq -er '.id' <<< "$metadata")
 [[ "$id" =~ ^[0-9]+$ ]]
-for name in "$source_name" "$bundle_name"; do
-  asset=$(SOURCE_ASSET_NAME="$name" gh api --paginate "repos/$GITHUB_REPOSITORY/releases/$id/assets" --jq '.[] | select(.name == env.SOURCE_ASSET_NAME) | .id')
-  if [[ -z "$asset" ]]; then
-    gh release upload "$SOURCE_RELEASE_TAG" --repo "$GITHUB_REPOSITORY" "dist/$name"
-  fi
-done
+metadata=$(get_release "$id" "$SOURCE_RELEASE_TAG" "$(jq -r '.draft' <<< "$metadata")" "$title" "$body")
 download=$(mktemp -d)
 trap 'rm -f "$download/$source_name" "$download/$bundle_name" "$download/public-source.tar.gz" "$download/public-source.sigstore.json"; rmdir "$download"' EXIT
-gh release download "$SOURCE_RELEASE_TAG" --repo "$GITHUB_REPOSITORY" --pattern "$source_name" --pattern "$bundle_name" --dir "$download"
+release_asset "$metadata" "dist/$source_name" "$download"
+release_asset "$metadata" "dist/$bundle_name" "$download" verified-bundle
 # Existing source assets are immutable: reuse identical valid assets, never clobber them.
 cmp "dist/$source_name" "$download/$source_name"
 cosign verify-blob --bundle "$download/$bundle_name" --certificate-identity "$identity" --certificate-oidc-issuer "$issuer" "$download/$source_name"
 guard_release
 if [[ "$(jq -r '.draft' <<< "$metadata")" == true ]]; then
-  gh api --method PATCH "repos/$GITHUB_REPOSITORY/releases/$id" -F draft=false -f make_latest=false
+  update_release "$id" "$SOURCE_RELEASE_TAG" false "$title" "$body" >/dev/null
 fi
 # No token or curl configuration: prove the exact source bytes are publicly reachable.
 curl --disable --fail --location --proto '=https' --proto-redir '=https' --retry 5 --retry-all-errors --retry-delay 2 \
