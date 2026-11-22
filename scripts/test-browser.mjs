@@ -1,0 +1,72 @@
+// SPDX-License-Identifier: AGPL-3.0-only
+import { createRequire } from 'node:module';
+import assert from 'node:assert/strict';
+const require = createRequire(import.meta.url);
+const { chromium } = require(process.env.PLAYWRIGHT_MODULE);
+const browser = await chromium.launch({ executablePath: process.env.CHROMIUM, args: ['--no-sandbox'] });
+try {
+  const context = await browser.newContext({ignoreHTTPSErrors:true, viewport:{width:1280,height:900}});
+  await context.addCookies([{name:'__Host-obsidian',value:'valid',url:process.argv[2],secure:true,httpOnly:true,sameSite:'Lax'}]);
+  await context.grantPermissions(['clipboard-read','clipboard-write']);
+  const page = await context.newPage();
+  const errors = [];
+  page.on('pageerror', error => errors.push(error.message));
+  await page.goto(process.argv[2]);
+  assert.equal(await page.locator('h1').textContent(),'My vaults');
+  assert.equal(await page.locator('nav').count(),0);
+  assert.equal(await page.locator('#setup-content input').count(),0);
+  assert.match(await page.locator('footer a').getAttribute('href'), /source-a{40}\/.*1.0.0_source.tar.gz$/);
+  const mainBefore = await page.locator('#content').innerHTML();
+  let navigations=0;
+  page.on('framenavigated', () => navigations++);
+  const open = page.getByRole('button',{name:'Show setup URI'}).first();
+  await open.click();
+  await page.waitForSelector('dialog[open]');
+  assert.equal(await page.locator('#content').innerHTML(),mainBefore);
+  assert.equal(await page.locator('#setup-dialog input[type=password]').count(),3);
+  assert.equal(await page.locator('#setup-dialog [data-copy]').count(),3);
+  await page.locator('[data-copy="setup-password"]').click();
+  await page.getByRole('status').filter({hasText:'Copied.'}).waitFor();
+  assert.equal(await page.evaluate(() => navigator.clipboard.readText()),'dummy-uri-key');
+  assert.equal(await page.locator('#setup-password').getAttribute('type'),'password');
+  await page.locator('[data-reveal="setup-uri"]').click();
+  assert.equal(await page.locator('#setup-uri').getAttribute('type'),'text');
+  assert.equal(await page.locator('[data-reveal="setup-uri"]').getAttribute('aria-pressed'),'true');
+  await page.locator('[data-reveal="setup-uri"]').click();
+  assert.equal(await page.locator('#setup-uri').getAttribute('type'),'password');
+  // Native modal traps focus and restores it on Escape.
+  await page.keyboard.press('Escape');
+  await page.waitForSelector('dialog:not([open])', {state:'attached'});
+  await page.waitForSelector('#setup-content input', {state:'detached'});
+  assert.equal(await page.locator('#setup-content input').count(),0);
+  assert.equal(await open.evaluate(el => el===document.activeElement),true);
+  await open.click(); await page.waitForSelector('dialog[open]');
+  assert.equal(await page.locator('#setup-dialog input[type=password]').count(),3);
+  await page.evaluate(() => Object.defineProperty(navigator,'clipboard',{value:{writeText:async()=>{throw Error('denied');}}, configurable:true}));
+  await page.locator('[data-copy="setup-uri"]').click();
+  await page.getByRole('status').filter({hasText:'Could not copy.'}).waitFor();
+  await page.getByRole('button',{name:'Close setup'}).click();
+  await page.waitForSelector('dialog:not([open])', {state:'attached'});
+  // Server-side setup failure swaps only the dialog target, never the vault list.
+  await page.locator('.setup-form input[name=id]').first().evaluate(el=>el.value='missing');
+  await open.click(); await page.waitForSelector('dialog[open]');
+  await page.getByRole('alert').filter({hasText:'vault not active'}).waitFor();
+  assert.equal(await page.locator('h1').textContent(),'My vaults');
+  await page.keyboard.press('Escape');
+  await page.locator('.setup-form input[name=id]').first().evaluate(el=>el.value='default');
+  // CSRF rejection is also an accessible dialog error.
+  await page.locator('.setup-form input[name=csrf]').first().evaluate(el=>el.value='wrong');
+  await open.click(); await page.waitForSelector('dialog[open]');
+  await page.getByRole('alert').filter({hasText:'Invalid CSRF'}).waitFor();
+  await page.keyboard.press('Escape');
+  assert.equal(navigations,0);
+  await page.goto(process.argv[2]);
+  await page.screenshot({path:'/tmp/opencode/olp-ui-desktop.png',fullPage:true});
+  await page.setViewportSize({width:375,height:812});
+  assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth <= innerWidth),true);
+  await open.click(); await page.waitForSelector('dialog[open]');
+  assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth <= innerWidth),true);
+  await page.screenshot({path:'/tmp/opencode/olp-ui-mobile-dialog.png',fullPage:true});
+  assert.deepEqual(errors,[]);
+  console.log('Real Chromium: modal open/close/Escape/focus, hidden/copy/reveal, clipboard failure, setup/CSRF errors, unchanged page, footer and mobile overflow passed.');
+} finally { await browser.close(); }

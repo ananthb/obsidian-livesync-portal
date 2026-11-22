@@ -151,7 +151,7 @@ func (a *app) callback(w http.ResponseWriter, r *http.Request) {
 	}
 	// The verified login round-trip authorizes bootstrap; ordinary GETs never mutate data.
 	if _, err := a.Manager.run(ctx, personName, "list", "", ""); err != nil {
-		log.Print("default initialization pending; use retry in management")
+		log.Print("default initialization pending; automatic retry on management page")
 	}
 	a.mu.Lock()
 	a.cleanup()
@@ -204,6 +204,12 @@ func (a *app) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		_, _ = w.Write(b)
 		return
 	}
+	if r.URL.Path == "/static/portal.js" && r.Method == "GET" {
+		b, _ := assets.ReadFile("static/portal.js")
+		w.Header().Set("Content-Type", "text/javascript")
+		_, _ = w.Write(b)
+		return
+	}
 	if r.Method == "GET" && r.URL.Path == "/login" {
 		a.startLogin(w, r)
 		return
@@ -217,19 +223,19 @@ func (a *app) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		if r.Method == "GET" {
 			http.Redirect(w, r, "/login", 303)
 		} else {
-			http.Error(w, "login required", 401)
+			a.requestError(w, r, "Your session expired. Sign in again to continue.", 401)
 		}
 		return
 	}
 	identity, known := a.Config.People[s.Person]
 	if !known || identity.Subject != s.Subject || identity.Issuer != s.Issuer {
-		http.Error(w, "directory access removed", 403)
+		a.requestError(w, r, "Directory access removed.", 403)
 		return
 	}
 	if r.Method == "POST" {
 		r.Body = http.MaxBytesReader(w, r.Body, 8192)
 		if r.Header.Get("Origin") != a.Config.URL || r.ParseForm() != nil || !equal(r.PostForm.Get("csrf"), s.CSRF) {
-			http.Error(w, "invalid CSRF token or origin", 403)
+			a.requestError(w, r, "Invalid CSRF token or origin. Reload the page and try again.", 403)
 			return
 		}
 		if r.URL.Path == "/logout" {
@@ -257,14 +263,18 @@ func (a *app) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		p = s.Person
 	}
 	if p != s.Person {
-		http.Error(w, "another person's vaults are not accessible", 403)
+		a.requestError(w, r, "Another person's vaults are not accessible.", 403)
 		return
 	}
 	if _, ok := a.Config.People[p]; !ok {
 		http.Error(w, "unknown person", 404)
 		return
 	}
-	ctx, cancel := context.WithTimeout(r.Context(), 70*time.Second)
+	timeout := 70 * time.Second
+	if r.Method == "POST" && r.PostForm.Get("action") == "sync" {
+		timeout = 15 * time.Second
+	}
+	ctx, cancel := context.WithTimeout(r.Context(), timeout)
 	defer cancel()
 	action := "list"
 	if r.Method == "POST" {
@@ -276,6 +286,7 @@ func (a *app) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		Setup               *setupResult
 		Base                string
 		SourceURL           string
+		Retry               bool
 	}{Person: p, CSRF: s.CSRF, Base: r.URL.Path, SourceURL: a.Config.SourceURL}
 	if action == "setup" {
 		cred, err := a.Manager.setup(ctx, p, r.PostForm.Get("id"))
@@ -313,14 +324,40 @@ func (a *app) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		}
 		if err != nil {
 			data.Error = err.Error()
+			// Return persisted pending state, not an empty list after a partial failure.
+			data.Vaults, _ = a.Manager.view(ctx, p)
+		}
+	}
+	data.Retry = action != "setup" && (data.Error != "" || len(data.Vaults) == 0)
+	for _, v := range data.Vaults {
+		if v.State == "creating" || v.State == "deleting" {
+			data.Retry = true
 		}
 	}
 	name := "page"
 	if r.Header.Get("HX-Request") == "true" {
 		name = "content"
+		if action == "setup" {
+			name = "setup"
+		}
 	}
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
 	if err := a.Templates.ExecuteTemplate(w, name, data); err != nil {
 		log.Print("template render failed")
 	}
+}
+
+// Enhanced setup errors stay inside the credential dialog, including expired sessions
+// and rejected CSRF checks. No untrusted request text is reflected into the fragment.
+func (a *app) requestError(w http.ResponseWriter, r *http.Request, message string, status int) {
+	if r.Header.Get("HX-Request") == "true" && r.Header.Get("HX-Target") == "div#setup-content" {
+		w.Header().Set("Content-Type", "text/html; charset=utf-8")
+		w.WriteHeader(status)
+		_ = a.Templates.ExecuteTemplate(w, "setup", struct {
+			Error string
+			Setup *setupResult
+		}{Error: message})
+		return
+	}
+	http.Error(w, message, status)
 }

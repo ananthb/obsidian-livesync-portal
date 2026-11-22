@@ -233,7 +233,7 @@ func (m *manager) run(ctx context.Context, p, action, id, name string) ([]vault,
 				continue
 			}
 			if err = m.DB.Change(ctx, method, cred, v.Database); err != nil {
-				return nil, errors.New("database operation pending; use retry pending operations")
+				return nil, errors.New("Database operation pending. Automatic retries will resume shortly.")
 			}
 			if method == "PUT" {
 				v.State = "active"
@@ -244,7 +244,7 @@ func (m *manager) run(ctx context.Context, p, action, id, name string) ([]vault,
 			}
 			c.Vaults[key] = v
 			if err = m.Repo.Save(ctx, p, n, c); err != nil {
-				return nil, errors.New("metadata update pending; use retry pending operations")
+				return nil, errors.New("Metadata update pending. Automatic retries will resume shortly.")
 			}
 			n++
 		}

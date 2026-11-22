@@ -24,7 +24,7 @@ func TestSourceOfferVisibleInNetworkUI(t *testing.T) {
 	a := testApp(t)
 	a.Config.SourceURL = releaseSourceURL("1.0.0", strings.Repeat("a", 40))
 	w := call(a, "/", "GET", nil, "", true)
-	if w.Code != 200 || !strings.Contains(w.Body.String(), a.Config.SourceURL) || !strings.Contains(w.Body.String(), "Source code (AGPL-3.0-only)") {
+	if w.Code != 200 || !strings.Contains(w.Body.String(), "<footer><a href=\""+a.Config.SourceURL+"\">Source code</a>") {
 		t.Fatal("network UI source offer missing")
 	}
 }

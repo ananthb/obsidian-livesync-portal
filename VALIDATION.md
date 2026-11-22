@@ -1,6 +1,31 @@
 <!-- SPDX-License-Identifier: AGPL-3.0-only -->
 # Extraction validation
 
+## UI regression checks (2026-11-22)
+
+`ui_test.go` checks page hierarchy, initial secret absence, setup-only fragments,
+CSRF/ownership rejection, protected defaults and retry intent using dummy fixtures.
+The opt-in `TestBrowser*` tests run real Chromium against an in-process TLS fixture
+(never a live portal, identity provider or CouchDB). They cover secret copy/reveal,
+clipboard failure, close/Escape/focus restoration, local error swaps, responsive
+overflow, exact source footer and bounded automatic bootstrap/delete retries.
+The separate `browser` CI job installs pinned Playwright only as a test tool.
+
+Local Nix invocation (no persistent install):
+
+```sh
+export PLAYWRIGHT_MODULE="$(nix eval --raw nixpkgs#playwright-driver.outPath)"
+nix shell nixpkgs#nodejs nixpkgs#playwright-driver nixpkgs#chromium nixpkgs#gcc \
+  --command bash -c 'CHROMIUM=$(command -v chromium) PORTAL_BROWSER=1 CGO_ENABLED=1 go test -race -count=1 -run "^TestBrowser" -v .'
+```
+
+Pending operations retry only through authenticated, same-origin CSRF-protected
+POSTs while the page is open, after 2, 5, 15, 30 and 60 seconds. Five unsuccessful
+attempts pause visibly; signing in again resumes. No new deletion intent is
+generated. Ordinary GETs stay read-only, and no retry worker survives page close.
+With JavaScript disabled, ordinary forms still navigate; automatic retries require
+signing in again. Setup responses and secrets are never stored in browser history.
+
 Status on 2026-11-21. This candidate is not a published release.
 
 The table below records **historical pre-native extraction checks**, not proof
