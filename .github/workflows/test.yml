@@ -4,6 +4,21 @@ on: [push, pull_request]
 permissions:
   contents: read
 jobs:
+  browser:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-go@d8cbb8045d7f43706b9177cceb36c1f91a6644d5 # v7.1.0
+        with:
+          go-version: 1.27.4
+      - name: Exercise the embedded UI in real Chromium with dummy fixtures
+        run: |
+          mkdir -p /tmp/opencode
+          npm install --prefix "$RUNNER_TEMP/browser" --ignore-scripts --no-package-lock playwright-core@1.64.1
+          export PLAYWRIGHT_MODULE="$RUNNER_TEMP/browser/node_modules/playwright-core"
+          node "$PLAYWRIGHT_MODULE/cli.js" install --with-deps chromium
+          export CHROMIUM="$(node -e 'console.log(require(process.env.PLAYWRIGHT_MODULE).chromium.executablePath())')"
+          PORTAL_BROWSER=1 go test -race -count=1 -run '^TestBrowser' -v .
   test:
     runs-on: ubuntu-24.04
     env:
